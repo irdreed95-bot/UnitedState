@@ -56,6 +56,10 @@ jobs:
         run: |
           mkdir -p build/android
           godot --headless --path . --verbose --export-debug "Android" "build/android/${EXPORT_NAME}.apk"
+          zipalign -f 4 "build/android/${EXPORT_NAME}.apk" "build/android/${EXPORT_NAME}-aligned.apk"
+          mv "build/android/${EXPORT_NAME}-aligned.apk" "build/android/${EXPORT_NAME}.apk"
+          apksigner sign --ks ~/.android/debug.keystore --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android "build/android/${EXPORT_NAME}.apk"
+          apksigner verify --verbose "build/android/${EXPORT_NAME}.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
