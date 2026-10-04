@@ -85,20 +85,14 @@ jobs:
           mv "build/android/${EXPORT_NAME}.signed.apk" "build/android/${EXPORT_NAME}.apk"
       - name: Verify APK structure and signing
         run: |
+          ZIPALIGN="$ANDROID_HOME/build-tools/35.0.0/zipalign"
+          APK_SIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          test -x "$ZIPALIGN"
+          test -x "$APK_SIGNER"
           unzip -t "build/android/${EXPORT_NAME}.apk" >/dev/null
-          APK_SIGNER="$(command -v apksigner || find /usr -name apksigner -type f | head -1)"
-          test -n "$APK_SIGNER"
+          "$ZIPALIGN" -c -P 16 -v 4 "build/android/${EXPORT_NAME}.apk"
           "$APK_SIGNER" verify --verbose "build/android/${EXPORT_NAME}.apk"
-          python3 - <<'PY'
-          import zipfile
-          apk = "build/android/CorruptStateRP.apk"
-          z = zipfile.ZipFile(apk)
-          for i in z.infolist():
-              if i.filename.startswith("lib/") and i.compress_type == zipfile.ZIP_STORED:
-                  offset = i.header_offset + 30 + len(i.filename.encode()) + len(i.extra)
-                  assert offset % 16384 == 0, f"16KB ZIP alignment failed: {i.filename} offset={offset}"
-          print("16KB ZIP alignment check: PASS")
-          PY
+          echo "APK structure, signature, and 16KB ZIP alignment: PASS"
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
