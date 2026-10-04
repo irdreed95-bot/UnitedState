@@ -84,7 +84,6 @@ jobs:
         run: |
           mkdir -p build/android
           godot --headless --path . --verbose --export-debug "Android" "build/android/${EXPORT_NAME}.apk"
-          mv "build/android/${EXPORT_NAME}-aligned.apk" "build/android/${EXPORT_NAME}.apk"
           apksigner sign --ks ~/.android/debug.keystore --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android "build/android/${EXPORT_NAME}.apk"
           apksigner verify --verbose "build/android/${EXPORT_NAME}.apk"
 
