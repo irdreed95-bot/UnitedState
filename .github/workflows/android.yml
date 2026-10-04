@@ -32,6 +32,25 @@ jobs:
             mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
           fi
 
+      - name: Configure Godot Android paths
+        run: |
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings-4.3.tres <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/java_sdk_path = "/usr/lib/jvm/java-17-openjdk-amd64"
+          export/android/android_sdk_path = "/usr/lib/android-sdk"
+          export/android/debug_keystore = "/github/home/.android/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          export/android/force_system_user = false
+          export/android/shutdown_adb_on_exit = true
+          EOF
+          export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+          java -version
+          test -d /usr/lib/android-sdk
+
       - name: Install Android SDK packages required by Godot 4.3
         run: |
           yes | sdkmanager --licenses >/dev/null || true
