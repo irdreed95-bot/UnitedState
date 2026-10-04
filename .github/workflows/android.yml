@@ -101,7 +101,7 @@ jobs:
           set -e
           APK_PATH="build/android/${EXPORT_NAME}.apk"
           test -s "$APK_PATH"
-          DIRECT_URL="$(curl -fsSL -F "reqtype=fileupload" -F "fileToUpload=@${APK_PATH};type=application/vnd.android.package-archive" https://catbox.moe/user/api.php)"
+          DIRECT_URL="$(curl -fsSL -F "reqtype=fileupload" -F "time=72h" -F "fileToUpload=@${APK_PATH}" https://litterbox.catbox.moe/resources/internals/api.php)"
           case "$DIRECT_URL" in
             http://*|https://*) ;;
             *) echo "Direct upload failed: $DIRECT_URL"; exit 1 ;;
