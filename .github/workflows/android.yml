@@ -97,31 +97,18 @@ jobs:
           "$APK_SIGNER" verify --verbose "build/android/${EXPORT_NAME}.apk"
           echo "APK structure, signature, and 16KB ZIP alignment: PASS"
       - name: Publish direct APK download
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -e
-          RELEASE_TAG="android-build-${GITHUB_RUN_NUMBER}"
-          RELEASE_NAME="CorruptStateRP Android ${GITHUB_RUN_NUMBER}"
-          API="https://api.github.com/repos/${GITHUB_REPOSITORY}"
-          RELEASE_JSON="$(curl -fsSL -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "X-GitHub-Api-Version: 2026-03-10" \
-            -H "Content-Type: application/json" \
-            "${API}/releases" \
-            -d "{\"tag_name\":\"${RELEASE_TAG}\",\"name\":\"${RELEASE_NAME}\",\"body\":\"Direct APK build from successful CI verification.\",\"draft\":false,\"prerelease\":false,\"make_latest\":true}")"
-          RELEASE_ID="$(printf '%s' "$RELEASE_JSON" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)"
-          test -n "$RELEASE_ID"
-          curl -fsSL -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "X-GitHub-Api-Version: 2026-03-10" \
-            -H "Content-Type: application/vnd.android.package-archive" \
-            --data-binary "@build/android/${EXPORT_NAME}.apk" \
-            "${API}/releases/${RELEASE_ID}/assets?name=${EXPORT_NAME}.apk" >/dev/null
-          echo "DIRECT_APK_URL=https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/${EXPORT_NAME}.apk" >> "$GITHUB_STEP_SUMMARY"
-          echo "Direct APK: https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/${EXPORT_NAME}.apk"
+          APK_PATH="build/android/${EXPORT_NAME}.apk"
+          test -s "$APK_PATH"
+          DIRECT_URL="$(curl -fsSL -F "reqtype=fileupload" -F "fileToUpload=@${APK_PATH};type=application/vnd.android.package-archive" https://catbox.moe/user/api.php)"
+          case "$DIRECT_URL" in
+            http://*|https://*) ;;
+            *) echo "Direct upload failed: $DIRECT_URL"; exit 1 ;;
+          esac
+          echo "DIRECT_APK_URL=$DIRECT_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Direct APK: $DIRECT_URL"
+
       - name: Upload APK artifact (backup)
         uses: actions/upload-artifact@v4
         with:
