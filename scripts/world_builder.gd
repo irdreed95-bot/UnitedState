@@ -46,12 +46,15 @@ func _build_grid_city() -> void:
 	library.create_item(0)
 	library.set_item_name(0, "Road")
 	library.set_item_mesh(0, _box_mesh(Vector3(CELL, 0.2, CELL), Color("#12171d")))
+	library.set_item_shapes(0, [_shape_box(Vector3(CELL, 0.2, CELL)), Transform3D.IDENTITY])
 	library.create_item(1)
 	library.set_item_name(1, "Building")
 	library.set_item_mesh(1, _box_mesh(Vector3(CELL * 0.86, CELL * 2.0, CELL * 0.86), Color("#3c4854")))
+	library.set_item_shapes(1, [_shape_box(Vector3(CELL * 0.86, CELL * 2.0, CELL * 0.86)), Transform3D.IDENTITY])
 	library.create_item(2)
 	library.set_item_name(2, "BuildingDark")
 	library.set_item_mesh(2, _box_mesh(Vector3(CELL * 0.86, CELL * 3.0, CELL * 0.86), Color("#4a4650")))
+	library.set_item_shapes(2, [_shape_box(Vector3(CELL * 0.86, CELL * 3.0, CELL * 0.86)), Transform3D.IDENTITY])
 	grid.mesh_library = library
 	add_child(grid)
 	for x in range(-11, 12):
@@ -81,6 +84,11 @@ func _build_grid_city() -> void:
 	col.position.y = -0.55
 	ground.add_child(col)
 	add_child(ground)
+
+func _shape_box(size: Vector3) -> BoxShape3D:
+	var shape := BoxShape3D.new()
+	shape.size = size
+	return shape
 
 func _box_mesh(size: Vector3, color: Color) -> BoxMesh:
 	var mesh := BoxMesh.new()
