@@ -1,27 +1,21 @@
 # Corrupt State RP
 
-لعبة Mobile Open World RP أصلية، مبنية على Godot 4.3، ومصممة لتتوسع من نسخة Offline قابلة للعب إلى نسخة Online تعتمد على سيرفر لاحقاً.
+Godot 4.5.2 mobile-first open-world RP project.
 
-## المرحلة الحالية
-- مدينة ثلاثية الأبعاد مولدة برمجياً مع طرق ومبانٍ ومؤسسات: شرطة، مستشفى، بنك، حكومة، محكمة، سجن، كراج، سوق، عصابات وميناء.
-- تحكم لمس + لوحة مفاتيح + منظور ثالث.
-- صحة، جوع، عطش، تحمل، XP، مستويات وWanted.
-- اقتصاد: Cash + Bank + شراء طعام.
-- وظائف وفصائل متعددة.
-- مركبات كنواة لنظام القيادة.
-- هاتف داخل اللعبة، جرد، مهام، تفاعل، نفوذ مناطق.
-- حفظ محلي JSON للعمل بدون سيرفر.
-- شعار Corrupt State RP كأيقونة Android.
+## Real 3D foundation now implemented
+- CharacterBody3D player controller with acceleration, gravity, turning and third-person camera.
+- Procedural humanoid placeholder with AnimationPlayer + AnimationTree state-machine structure (Idle/Walk), ready for licensed GLB/GLTF character replacement.
+- VehicleBody3D with four VehicleWheel3D wheels, steering, traction, suspension and braking.
+- Modular city generated through GridMap + MeshLibrary rather than hundreds of unrelated building nodes.
+- WorldEnvironment baseline with filmic tonemapping, glow and SSAO. SDFGI remains disabled for the Android/mobile renderer so the mobile build stays practical; it can be enabled in a separate high-end desktop profile.
+- Arabic mobile HUD, missions, economy, factions, inventory and local save remain integrated.
 
-## خارطة التطوير
-1. APK موثوق ومتوافق مع أجهزة Android الحديثة.
-2. خريطة إنتاجية وأصول 3D مجانية/مرخصة.
-3. قيادة مركبات حقيقية + مرآب + تعديل.
-4. شخصيات وNPCs وAI.
-5. شرطة/جيش/EMS/إطفاء/حكومة/قضاء/سجن.
-6. عصابات ومناطق وتحالفات وفعاليات.
-7. عقارات وأعمال واقتصاد متقدم.
-8. هاتف ورسائل وصوت وGPS.
-9. سيرفر وحسابات وتزامن عند الانتقال إلى Online.
+## Asset policy
+Use only original or properly licensed GLB/GLTF assets. Do not copy One State RP, GTA, or other commercial game assets.
 
-> OneState/GTA مرجع لمستوى تجربة Mobile Open World RP فقط. لا ننسخ أصولاً أو خرائط أو واجهات محمية؛ الأصول المضافة لاحقاً يجب أن تكون أصلية أو مجانية/مرخصة.
+## Production roadmap
+1. Import licensed GLB/GLTF character + vehicle packs and connect real animations.
+2. Expand the city into districts with interiors, traffic, pedestrians and navigation.
+3. Add LOD/visibility/streaming budgets for a large mobile world.
+4. Build the authoritative online backend: accounts, persistent economy, jobs, factions, chat/voice and admin systems.
+5. Add advanced police/EMS/criminal gameplay, housing, businesses, vehicles, missions and events.
