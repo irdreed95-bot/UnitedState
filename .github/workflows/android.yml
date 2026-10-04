@@ -101,11 +101,15 @@ jobs:
           set -e
           APK_PATH="build/android/${EXPORT_NAME}.apk"
           test -s "$APK_PATH"
-          DIRECT_URL="$(curl -fsSL -F "reqtype=fileupload" -F "time=72h" -F "fileToUpload=@${APK_PATH}" https://litterbox.catbox.moe/resources/internals/api.php)"
-          case "$DIRECT_URL" in
-            http://*|https://*) ;;
-            *) echo "Direct upload failed: $DIRECT_URL"; exit 1 ;;
-          esac
+          RESPONSE="$(curl -fsSL -F "file=@${APK_PATH}" https://upload.gofile.io/uploadfile)"
+          DIRECT_URL="$(printf '%s' "$RESPONSE" | grep -o '"directLink":"[^"]*"' | head -1 | cut -d'"' -f4)"
+          if [ -z "$DIRECT_URL" ]; then
+            DOWNLOAD_PAGE="$(printf '%s' "$RESPONSE" | grep -o '"downloadPage":"[^"]*"' | head -1 | cut -d'"' -f4)"
+            if [ -n "$DOWNLOAD_PAGE" ]; then
+              DIRECT_URL="$DOWNLOAD_PAGE"
+            fi
+          fi
+          test -n "$DIRECT_URL"
           echo "DIRECT_APK_URL=$DIRECT_URL" >> "$GITHUB_STEP_SUMMARY"
           echo "Direct APK: $DIRECT_URL"
 
