@@ -68,7 +68,8 @@ func _physics_process(delta: float) -> void:
 		camera.look_at(vehicle.global_position + Vector3(0, 1.0, 0))
 		return
 	player.set_move_input(input_vec, false)
-	stamina = max(0.0, stamina - delta * 2.2 if input_vec.length() > 0.1 else 0.0)
+	if input_vec.length() > 0.1:
+		stamina = max(0.0, stamina - delta * 2.2)
 	player.global_position.x = clamp(player.global_position.x, -CITY_SIZE / 2.0, CITY_SIZE / 2.0)
 	player.global_position.z = clamp(player.global_position.z, -CITY_SIZE / 2.0, CITY_SIZE / 2.0)
 	camera.global_position = player.global_position + Vector3(0, 6.5, 10.5)
