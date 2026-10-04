@@ -1,0 +1,23 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import project
+        run: godot --headless --editor --quit
+      - name: Export Android
+        run: godot --headless --path . --export-release "Android" CorruptStateRP.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CorruptStateRP-Android
+          path: CorruptStateRP.apk
