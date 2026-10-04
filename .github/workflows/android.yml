@@ -74,8 +74,8 @@ jobs:
           ls -lh "build/android/${EXPORT_NAME}.apk"
       - name: Align APK for modern Android (16 KB)
         run: |
-          ZIPALIGN="$(command -v zipalign || find /usr -name zipalign -type f | head -1)"
-          APK_SIGNER="$(command -v apksigner || find /usr -name apksigner -type f | head -1)"
+          ZIPALIGN="$ANDROID_HOME/build-tools/35.0.0/zipalign"
+          APK_SIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           test -n "$ZIPALIGN"
           test -n "$APK_SIGNER"
           "$ZIPALIGN" -P 16 -f 4 "build/android/${EXPORT_NAME}.apk" "build/android/${EXPORT_NAME}.aligned.apk"
