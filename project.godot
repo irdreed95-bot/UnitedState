@@ -23,10 +23,6 @@ move_left={"deadzone":0.2,"events":[Object(InputEventKey,"physical_keycode":65)]
 move_right={"deadzone":0.2,"events":[Object(InputEventKey,"physical_keycode":68)]}
 interact={"deadzone":0.2,"events":[Object(InputEventKey,"physical_keycode":69)]}
 
-[rendering]
-
-textures/default_filters/use_nearest_mipmap_filter=false
-
 [rendering/textures/vram_compression]
 
 import_etc2_astc=true
