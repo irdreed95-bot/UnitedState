@@ -56,6 +56,13 @@ jobs:
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "build-tools;33.0.2" "build-tools;34.0.0" "platforms;android-33" "platforms;android-34"
 
+      - name: Install Gradle Android build template
+        run: |
+          rm -rf android
+          mkdir -p android
+          unzip -q "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable/android_source.zip" -d android
+          test -f android/build.gradle || test -f android/build.gradle.kts || test -f android/settings.gradle
+
       - name: Validate project
         run: |
           godot --headless --path . --editor --quit --rendering-method gl_compatibility
