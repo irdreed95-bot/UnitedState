@@ -96,6 +96,11 @@ jobs:
           "$ZIPALIGN" -c -P 16 -v 4 "build/android/${EXPORT_NAME}.apk"
           "$APK_SIGNER" verify --verbose "build/android/${EXPORT_NAME}.apk"
           echo "APK structure, signature, and 16KB ZIP alignment: PASS"
+      - name: Install curl for direct upload
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq curl
+
       - name: Publish direct APK download
         run: |
           set -e
