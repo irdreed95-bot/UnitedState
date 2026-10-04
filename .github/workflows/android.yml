@@ -60,7 +60,7 @@ jobs:
         run: |
           rm -rf android
           mkdir -p android/build
-          printf "%s\n" "${GODOT_VERSION}.stable.official" > android/.build_version
+          printf "%s\n" "${GODOT_VERSION}.stable" > android/.build_version
           : > android/build/.gdignore
           unzip -q "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable/android_source.zip" -d android/build
           test -f android/build/build.gradle || test -f android/build/settings.gradle
