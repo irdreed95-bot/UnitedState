@@ -6,7 +6,7 @@ on:
     branches: [ main ]
 
 env:
-  GODOT_VERSION: "4.3"
+  GODOT_VERSION: "4.5.2"
   EXPORT_NAME: "CorruptStateRP"
 
 jobs:
@@ -14,7 +14,7 @@ jobs:
     name: Build Android APK
     runs-on: ubuntu-24.04
     container:
-      image: barichello/godot-ci:4.3
+      image: barichello/godot-ci:4.5.2
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
       - name: Configure Godot Android paths
         run: |
           mkdir -p ~/.config/godot
-          cat > ~/.config/godot/editor_settings-4.3.tres <<EOF
+          cat > ~/.config/godot/editor_settings-4.5.tres <<EOF
           [gd_resource type="EditorSettings" format=3]
           [resource]
           export/android/java_sdk_path = "/usr/lib/jvm/java-17-openjdk-amd64"
@@ -46,7 +46,7 @@ jobs:
       - name: Install Android SDK packages required by Godot 4.3
         run: |
           yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platform-tools" "build-tools;34.0.0" "platforms;android-34"
+          sdkmanager "platform-tools" "build-tools;35.0.0" "platforms;android-35" "ndk;28.1.13356709" "cmake;3.10.2.4988404"
       - name: Install Gradle Android build template
         run: |
           rm -rf android
@@ -72,12 +72,33 @@ jobs:
           godot --headless --path . --verbose --export-debug "Android" "build/android/${EXPORT_NAME}.apk"
           test -s "build/android/${EXPORT_NAME}.apk"
           ls -lh "build/android/${EXPORT_NAME}.apk"
+      - name: Align APK for modern Android (16 KB)
+        run: |
+          ZIPALIGN="$(command -v zipalign || find /usr -name zipalign -type f | head -1)"
+          APK_SIGNER="$(command -v apksigner || find /usr -name apksigner -type f | head -1)"
+          test -n "$ZIPALIGN"
+          test -n "$APK_SIGNER"
+          "$ZIPALIGN" -P 16 -f 4 "build/android/${EXPORT_NAME}.apk" "build/android/${EXPORT_NAME}.aligned.apk"
+          mv "build/android/${EXPORT_NAME}.aligned.apk" "build/android/${EXPORT_NAME}.apk"
+          "$ZIPALIGN" -c -P 16 -v 4 "build/android/${EXPORT_NAME}.apk"
+          "$APK_SIGNER" sign --ks /github/home/.android/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --out "build/android/${EXPORT_NAME}.signed.apk" "build/android/${EXPORT_NAME}.apk"
+          mv "build/android/${EXPORT_NAME}.signed.apk" "build/android/${EXPORT_NAME}.apk"
       - name: Verify APK structure and signing
         run: |
           unzip -t "build/android/${EXPORT_NAME}.apk" >/dev/null
           APK_SIGNER="$(command -v apksigner || find /usr -name apksigner -type f | head -1)"
           test -n "$APK_SIGNER"
           "$APK_SIGNER" verify --verbose "build/android/${EXPORT_NAME}.apk"
+          python3 - <<'PY'
+          import zipfile
+          apk = "build/android/CorruptStateRP.apk"
+          z = zipfile.ZipFile(apk)
+          for i in z.infolist():
+              if i.filename.startswith("lib/") and i.compress_type == zipfile.ZIP_STORED:
+                  offset = i.header_offset + 30 + len(i.filename.encode()) + len(i.extra)
+                  assert offset % 16384 == 0, f"16KB ZIP alignment failed: {i.filename} offset={offset}"
+          print("16KB ZIP alignment check: PASS")
+          PY
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
