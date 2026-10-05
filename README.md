@@ -19,3 +19,21 @@ Use only original or properly licensed GLB/GLTF assets. Do not copy One State RP
 3. Add LOD/visibility/streaming budgets for a large mobile world.
 4. Build the authoritative online backend: accounts, persistent economy, jobs, factions, chat/voice and admin systems.
 5. Add advanced police/EMS/criminal gameplay, housing, businesses, vehicles, missions and events.
+
+
+## Batch 1 — Real-world test foundation
+- Expanded the playable city footprint to 600m x 600m.
+- Added a street-detail pass with street lights.
+- Added a traffic manager foundation for moving civilian vehicles.
+- Added a reusable interaction base for future doors, shops, NPCs, vehicles and services.
+- Vehicle foundation now supports engine state, headlights, horn state, repair state and runtime condition data.
+- The first test build is still a development build; the final city will be expanded far beyond this footprint using streamed districts.
+
+## Legal 3D asset sources under evaluation
+- Quaternius Downtown City MegaKit — CC0, glTF/FBX/OBJ, Godot-compatible source versions.
+- Quaternius Universal Base Characters — CC0, rigged characters.
+- Quaternius Universal Animation Library — CC0, 120+ retargetable animations.
+- Poly Haven — CC0 models, materials and HDRIs.
+- Kenney Car Kit — CC0 vehicle models available in GLB/FBX/OBJ.
+
+Asset sources are evaluated individually before inclusion. Commercial game assets from GTA, One State RP or other copyrighted games will not be copied.
