@@ -45,16 +45,16 @@ func _build_environment() -> void:
 
 func _build_grid_city() -> void:
 	grid = GridMap.new()
-	grid.name = "CityRoadGrid"
+	grid.name = "CityRoadBase"
 	grid.cell_size = Vector3(CELL, CELL, CELL)
 	grid.cell_octant_size = 8
 	grid.collision_layer = 1
 	grid.collision_mask = 1
 	var library := MeshLibrary.new()
 	library.create_item(0)
-	library.set_item_name(0, "Road")
-	library.set_item_mesh(0, _box_mesh(Vector3(CELL, 0.18, CELL), Color("#161b21")))
-	library.set_item_shapes(0, [_shape_box(Vector3(CELL, 0.18, CELL)), Transform3D.IDENTITY])
+	library.set_item_name(0, "RoadBase")
+	library.set_item_mesh(0, _box_mesh(Vector3(CELL, 0.12, CELL), Color("#11161b")))
+	library.set_item_shapes(0, [_shape_box(Vector3(CELL, 0.12, CELL)), Transform3D.IDENTITY])
 	grid.mesh_library = library
 	add_child(grid)
 
@@ -63,6 +63,12 @@ func _build_grid_city() -> void:
 			var road: bool = abs(x) <= 1 or abs(z) <= 1 or abs(x) % 4 == 0 or abs(z) % 4 == 0
 			if road:
 				grid.set_cell_item(Vector3i(x, 0, z), 0)
+				if (x % 4 == 0 and z % 4 == 0) or abs(x) <= 1 and z % 4 == 0 or abs(z) <= 1 and x % 4 == 0:
+					_add_real_road(Vector3(x * CELL, 0.08, z * CELL), true)
+				elif x % 4 == 0:
+					_add_real_road(Vector3(x * CELL, 0.08, z * CELL), true)
+				elif z % 4 == 0:
+					_add_real_road(Vector3(x * CELL, 0.08, z * CELL), false)
 
 	var ground := StaticBody3D.new()
 	ground.name = "CityGround"
@@ -71,7 +77,7 @@ func _build_grid_city() -> void:
 	plane.size = Vector3(CITY_SIZE, 1.0, CITY_SIZE)
 	mesh.mesh = plane
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color("#202b35")
+	mat.albedo_color = Color("#26313b")
 	mat.roughness = 0.94
 	mesh.material_override = mat
 	mesh.position.y = -0.55
@@ -84,78 +90,87 @@ func _build_grid_city() -> void:
 	ground.add_child(col)
 	add_child(ground)
 
+func _add_real_road(p: Vector3, vertical: bool) -> void:
+	var path := "res://assets/external/roads/road-straight.glb"
+	if not ResourceLoader.exists(path):
+		return
+	var scene := load(path) as PackedScene
+	if scene == null:
+		return
+	var road := scene.instantiate()
+	road.position = p
+	if vertical:
+		road.rotation_degrees.y = 90.0
+	add_child(road)
+
 func _build_procedural_city() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 9527
+	var assets := [
+		["res://assets/external/city/commercial_a.glb", Vector3(10, 8, 10)],
+		["res://assets/external/city/commercial_b.glb", Vector3(10, 8, 10)],
+		["res://assets/external/city/skyscraper_a.glb", Vector3(14, 30, 14)],
+		["res://assets/external/city/skyscraper_b.glb", Vector3(14, 36, 14)],
+		["res://assets/external/city/skyscraper_c.glb", Vector3(14, 42, 14)],
+		["res://assets/external/city/suburban_a.glb", Vector3(11, 7, 11)],
+		["res://assets/external/city/suburban_b.glb", Vector3(11, 9, 11)],
+		["res://assets/external/city/suburban_c.glb", Vector3(11, 10, 11)]
+	]
+	var available: Array = []
+	for item in assets:
+		if ResourceLoader.exists(str(item[0])):
+			available.append(item)
+	if available.is_empty():
+		return
+
 	for x in range(-28, 29, 2):
 		for z in range(-28, 29, 2):
 			if abs(x) <= 1 or abs(z) <= 1 or abs(x) % 4 == 0 or abs(z) % 4 == 0:
 				continue
 			var p := Vector3(x * CELL, 0.0, z * CELL)
-			var h: float = rng.randf_range(8.0, 28.0)
-			if abs(x) < 7 and abs(z) < 7:
-				h = rng.randf_range(14.0, 38.0)
-			_add_building(p, Vector3(rng.randf_range(6.5, 8.2), h, rng.randf_range(6.5, 8.2)), rng.randi_range(0, 4), rng)
+			var central: bool = abs(x) < 10 and abs(z) < 10
+			var index: int
+			if central:
+				index = rng.randi_range(2, min(4, available.size() - 1))
+			else:
+				index = rng.randi_range(0, available.size() - 1)
+			var item: Array = available[index]
+			_add_real_building(p, str(item[0]), item[1], rng)
 
-func _add_building(p: Vector3, size: Vector3, style: int, rng: RandomNumberGenerator) -> void:
+func _add_real_building(p: Vector3, asset_path: String, collision_size: Vector3, rng: RandomNumberGenerator) -> void:
+	var scene := load(asset_path) as PackedScene
+	if scene == null:
+		return
 	var body := StaticBody3D.new()
-	body.position = p + Vector3(0, size.y * 0.5, 0)
-
-	var main := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	main.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	var palettes := [Color("#344451"), Color("#4b4f59"), Color("#5b5960"), Color("#293a48"), Color("#665d52")]
-	mat.albedo_color = palettes[style]
-	mat.roughness = 0.7
-	main.material_override = mat
-	body.add_child(main)
-
-	var windows_mat := StandardMaterial3D.new()
-	windows_mat.albedo_color = Color("#a9c9d8")
-	windows_mat.emission_enabled = true
-	windows_mat.emission = Color("#27495a")
-	windows_mat.emission_energy_multiplier = 0.45
-	for side in [-1, 1]:
-		for floor_i in range(1, max(2, int(size.y / 3.0))):
-			if floor_i % 2 == 0:
-				var win := MeshInstance3D.new()
-				var wm := BoxMesh.new()
-				wm.size = Vector3(0.16, 0.85, size.z * 0.52)
-				win.mesh = wm
-				win.position = Vector3(side * (size.x * 0.5 + 0.09), floor_i * 2.5, 0)
-				win.material_override = windows_mat
-				body.add_child(win)
-
-	var roof := MeshInstance3D.new()
-	var roof_mesh := BoxMesh.new()
-	roof_mesh.size = Vector3(size.x * 0.84, 0.28, size.z * 0.84)
-	roof.mesh = roof_mesh
-	roof.position.y = size.y * 0.5 + 0.16
-	var roof_mat := StandardMaterial3D.new()
-	roof_mat.albedo_color = Color("#151a20")
-	roof_mat.roughness = 0.6
-	roof.material_override = roof_mat
-	body.add_child(roof)
-
+	body.name = "RealBuilding"
+	body.position = p
+	var visual := scene.instantiate()
+	visual.position.y = 0.0
+	var scale_factor: float = 1.0
+	if collision_size.y > 25.0:
+		scale_factor = 1.05
+	visual.scale = Vector3.ONE * scale_factor
+	body.add_child(visual)
 	var col := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = size
+	shape.size = collision_size
 	col.shape = shape
+	col.position.y = collision_size.y * 0.5
 	body.add_child(col)
+	if rng.randf() > 0.72:
+		var rooftop := MeshInstance3D.new()
+		var marker := BoxMesh.new()
+		marker.size = Vector3(min(2.5, collision_size.x * 0.3), 0.25, min(2.5, collision_size.z * 0.3))
+		rooftop.mesh = marker
+		rooftop.position.y = collision_size.y + 0.15
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color("#b22e3b")
+		m.emission_enabled = true
+		m.emission = Color("#4a1018")
+		m.emission_energy_multiplier = 0.5
+		rooftop.material_override = m
+		body.add_child(rooftop)
 	add_child(body)
-
-	if rng.randf() > 0.65:
-		var sign := MeshInstance3D.new()
-		var sign_mesh := BoxMesh.new()
-		sign_mesh.size = Vector3(min(3.0, size.x * 0.55), 0.55, 0.12)
-		sign.mesh = sign_mesh
-		sign.position = Vector3(0, min(size.y - 1.0, 4.0), -size.z * 0.51)
-		var sign_mat := StandardMaterial3D.new()
-		sign_mat.albedo_color = Color("#b83b45")
-		sign.material_override = sign_mat
-		body.add_child(sign)
 
 func _shape_box(size: Vector3) -> BoxShape3D:
 	var shape := BoxShape3D.new()
