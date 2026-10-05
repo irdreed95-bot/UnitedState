@@ -33,16 +33,12 @@ for pair in "a suburban_a" "b suburban_b" "c suburban_c"; do
   set -- $pair
   download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/building-type-$1.glb" "assets/external/city/$2.glb"
 done
-download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/tree-large.glb" assets/external/nature/tree-large.glb
-download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/tree-small.glb" assets/external/nature/tree-small.glb
 
 # Kenney CC0 Car Kit - confirmed files.
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/sedan.glb" assets/external/vehicles/sedan.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/suv.glb" assets/external/vehicles/suv.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/taxi.glb" assets/external/vehicles/taxi.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/police.glb" assets/external/vehicles/police.glb
-download "$BASE/Hidencod/tge-assets/main/packs/car-kit/ambulance.glb" assets/external/vehicles/ambulance.glb
-download "$BASE/Hidencod/tge-assets/main/packs/car-kit/firetruck.glb" assets/external/vehicles/firetruck.glb
 download "$BASE/Hidencod/tge-assets/main/packs/city-kit-roads/road-straight.glb" assets/external/roads/road-straight.glb
 
 # Quaternius Universal Base Characters, CC0.
