@@ -10,11 +10,11 @@ download() {
   echo "Downloading $(basename "$out")"
   if command -v curl >/dev/null 2>&1; then
     curl -fsSL --retry 3 --retry-delay 2 "$url" -o "$out"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q --tries=3 -O "$out" "$url"
   else
-    python3 - "$url" "$out" <<'PY'
-import sys, urllib.request
-urllib.request.urlretrieve(sys.argv[1], sys.argv[2])
-PY
+    echo "ERROR: neither curl nor wget is available in the Android build image." >&2
+    exit 127
   fi
   test -s "$out"
 }
