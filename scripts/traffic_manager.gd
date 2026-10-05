@@ -13,7 +13,6 @@ var vehicle_assets := [
 	"res://assets/external/vehicles/van.glb",
 	"res://assets/external/vehicles/truck.glb",
 	"res://assets/external/vehicles/police.glb",
-	"res://assets/external/vehicles/ambulance.glb"
 ]
 
 func setup(world_size: float) -> void:
