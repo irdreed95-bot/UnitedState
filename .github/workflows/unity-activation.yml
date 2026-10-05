@@ -1,0 +1,22 @@
+name: Unity Personal Activation File
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  activation:
+    name: Generate Unity activation request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate activation file
+        id: getManualLicenseFile
+        uses: game-ci/unity-request-activation-file@v2
+      - name: Upload activation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unity-Activation-Request
+          path: ${{ steps.getManualLicenseFile.outputs.filePath }}
