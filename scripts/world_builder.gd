@@ -1,7 +1,7 @@
 class_name RPWorldBuilder
 extends Node3D
 
-const CITY_SIZE := 220.0
+const CITY_SIZE := 600.0
 const CELL := 10.0
 var grid: GridMap
 
@@ -9,6 +9,7 @@ func build() -> void:
 	_build_environment()
 	_build_grid_city()
 	_build_collision_landmarks()
+	build_street_details()
 
 func _build_environment() -> void:
 	var env_node := WorldEnvironment.new()
@@ -57,8 +58,8 @@ func _build_grid_city() -> void:
 	library.set_item_shapes(2, [_shape_box(Vector3(CELL * 0.86, CELL * 3.0, CELL * 0.86)), Transform3D.IDENTITY])
 	grid.mesh_library = library
 	add_child(grid)
-	for x in range(-11, 12):
-		for z in range(-11, 12):
+	for x in range(-30, 31):
+		for z in range(-30, 31):
 			var road := abs(x) <= 1 or abs(z) <= 1 or abs(x) % 4 == 0 or abs(z) % 4 == 0
 			if road:
 				grid.set_cell_item(Vector3i(x, 0, z), 0)
@@ -125,3 +126,26 @@ func _build_collision_landmarks() -> void:
 		col.shape = shape
 		body.add_child(col)
 		add_child(body)
+
+func build_street_details() -> void:
+	var half := CITY_SIZE * 0.48
+	for x in range(-28, 29, 4):
+		_add_street_light(Vector3(x * CELL, 0, -half))
+		_add_street_light(Vector3(x * CELL, 0, half))
+	for z in range(-28, 29, 4):
+		_add_street_light(Vector3(-half, 0, z * CELL))
+		_add_street_light(Vector3(half, 0, z * CELL))
+
+func _add_street_light(p: Vector3) -> void:
+	var pole := MeshInstance3D.new()
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.045
+	mesh.bottom_radius = 0.07
+	mesh.height = 5.0
+	pole.mesh = mesh
+	pole.position = p + Vector3(0, 2.5, 0)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color("#34383d")
+	mat.roughness = 0.7
+	pole.material_override = mat
+	add_child(pole)
