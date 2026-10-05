@@ -1,20 +1,69 @@
 name: Build Web Preview
+
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
+env:
+  GODOT_VERSION: "4.5.2"
+  EXPORT_NAME: "CorruptStateRP"
+
 jobs:
   build-web:
+    name: Build Web Preview
     runs-on: ubuntu-24.04
     container:
       image: barichello/godot-ci:4.5.2
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Web build dependencies
+        run: |
+          apt-get update
+          apt-get install -y curl unzip
+
+      - name: Install Godot Web export templates
+        run: |
+          set -eux
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          curl -fsSL -o /tmp/godot-templates.tpz "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          rm -rf /tmp/godot-templates
+          mkdir -p /tmp/godot-templates
+          unzip -q /tmp/godot-templates.tpz -d /tmp/godot-templates
+          find /tmp/godot-templates -type f -name 'web*_*.zip' -print
+          find /tmp/godot-templates -type f -name 'web_nothreads_*.zip' -exec cp {} ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/ \;
+          test -f ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/web_nothreads_release.zip
+          test -f ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/web_nothreads_debug.zip
+
+      - name: Validate and export Web
+        run: |
+          set -eux
+          mkdir -p build/web
+          godot --headless --path . --editor --quit --rendering-method gl_compatibility
+          godot --headless --path . --verbose --export-release "Web" "build/web/index.html"
+          test -s build/web/index.html
+          find build/web -maxdepth 2 -type f -printf '%p %s bytes\n'
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
+
+  deploy:
+    name: Deploy Web Preview
+    needs: build-web
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
