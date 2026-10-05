@@ -54,6 +54,20 @@ func _build_chassis() -> void:
 	collision.position.y = 0.62
 	add_child(collision)
 
+	var asset_path := "res://assets/external/vehicles/sedan.glb"
+	if ResourceLoader.exists(asset_path):
+		var scene := load(asset_path) as PackedScene
+		if scene:
+			var car := scene.instantiate()
+			car.name = "KenneySedan"
+			car.position.y = 0.20
+			car.scale = Vector3.ONE
+			add_child(car)
+			headlight_left = _add_light(Vector3(-0.58, 0.72, -2.02))
+			headlight_right = _add_light(Vector3(0.58, 0.72, -2.02))
+			return
+
+	# Fallback only when the external vehicle asset is unavailable.
 	var body := MeshInstance3D.new()
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3(1.9, 0.58, 4.0)
@@ -65,37 +79,6 @@ func _build_chassis() -> void:
 	mat.roughness = 0.25
 	body.material_override = mat
 	add_child(body)
-
-	var hood := MeshInstance3D.new()
-	var hood_mesh := BoxMesh.new()
-	hood_mesh.size = Vector3(1.72, 0.18, 1.15)
-	hood.mesh = hood_mesh
-	hood.position = Vector3(0, 0.95, -1.18)
-	hood.material_override = mat
-	add_child(hood)
-
-	var cabin := MeshInstance3D.new()
-	var cabin_mesh := BoxMesh.new()
-	cabin_mesh.size = Vector3(1.45, 0.55, 1.72)
-	cabin.mesh = cabin_mesh
-	cabin.position = Vector3(0, 1.05, 0.25)
-	var cabin_mat := StandardMaterial3D.new()
-	cabin_mat.albedo_color = Color("#17252e")
-	cabin_mat.metallic = 0.25
-	cabin_mat.roughness = 0.12
-	cabin.material_override = cabin_mat
-	add_child(cabin)
-
-	var bumper := MeshInstance3D.new()
-	var bumper_mesh := BoxMesh.new()
-	bumper_mesh.size = Vector3(1.72, 0.18, 0.25)
-	bumper.mesh = bumper_mesh
-	bumper.position = Vector3(0, 0.43, -1.95)
-	var bumper_mat := StandardMaterial3D.new()
-	bumper_mat.albedo_color = Color("#11161c")
-	bumper.material_override = bumper_mat
-	add_child(bumper)
-
 	headlight_left = _add_light(Vector3(-0.58, 0.72, -2.02))
 	headlight_right = _add_light(Vector3(0.58, 0.72, -2.02))
 
