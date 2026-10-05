@@ -1,0 +1,24 @@
+using System;
+using UnityEngine;
+
+namespace CorruptStateRP {
+public sealed class WorldBuilder:MonoBehaviour {
+ public const float CitySize=600f; const float Cell=10f, RoadSpacing=40f; readonly System.Random rng=new(20261005);
+ readonly string[] buildings={"External/city/commercial_a","External/city/commercial_b","External/city/skyscraper_a","External/city/skyscraper_b","External/city/skyscraper_c","External/city/suburban_a","External/city/suburban_b","External/city/suburban_c"};
+ readonly (string,Vector3,string)[] landmarks={
+  ("مركز الشرطة",new(-65,0,-65),"External/city/commercial_a"),("المستشفى",new(65,0,-65),"External/city/commercial_b"),
+  ("البنك المركزي",new(-65,0,65),"External/city/skyscraper_a"),("دار الحكومة",new(65,0,65),"External/city/skyscraper_b"),
+  ("المحكمة",new(-105,0,0),"External/city/suburban_a"),("السجن",new(105,0,0),"External/city/suburban_b"),
+  ("الكراج",new(0,0,-105),"External/city/commercial_a"),("السوق",new(0,0,105),"External/city/commercial_b"),
+  ("منطقة العصابات",new(-105,0,105),"External/city/suburban_c"),("الميناء",new(105,0,105),"External/city/commercial_a")};
+ public void Build(){Environment();GroundAndRoads();Buildings();Landmarks();Life();}
+ void Environment(){RenderSettings.ambientLight=new(.72f,.78f,.83f);RenderSettings.fog=true;RenderSettings.fogColor=new(.43f,.51f,.57f);RenderSettings.fogDensity=.004f;var s=new GameObject("Sun").AddComponent<Light>();s.type=LightType.Directional;s.intensity=1.7f;s.shadows=LightShadows.Soft;s.transform.rotation=Quaternion.Euler(52,-28,0);}
+ void GroundAndRoads(){var g=GameObject.CreatePrimitive(PrimitiveType.Cube);g.name="CityGround";g.transform.position=new(0,-.55f,0);g.transform.localScale=new(CitySize,1,CitySize);g.GetComponent<Renderer>().material=Mat(new(.20f,.25f,.29f));for(int x=-30;x<=30;x++)for(int z=-30;z<=30;z++){if(!(Mathf.Abs(x)<=1||Mathf.Abs(z)<=1||x%4==0||z%4==0))continue;var r=GameObject.CreatePrimitive(PrimitiveType.Cube);r.name="Road";r.transform.position=new(x*Cell,0,z*Cell);r.transform.localScale=new(Cell,.12f,Cell);r.GetComponent<Renderer>().material=Mat(new(.07f,.09f,.11f));}}
+ void Buildings(){for(int x=-28;x<=28;x+=2)for(int z=-28;z<=28;z+=2){if(Mathf.Abs(x)<=1||Mathf.Abs(z)<=1||x%4==0||z%4==0)continue;Spawn(buildings[rng.Next(buildings.Length)],new(x*Cell,0,z*Cell),Mathf.Abs(x)<12&&Mathf.Abs(z)<12?1.25f:1.05f,"Building");}foreach(var p in new[]{new(-150,0,-170),new(-100,0,-170),new(-50,0,-170),new(50,0,-170),new(100,0,-170),new(150,0,-170),new(-170,0,-120),new(170,0,-120),new(-170,0,-60),new(170,0,-60)})Spawn("External/city/skyscraper_a",p,1.25f,"Skyline");}
+ void Landmarks(){foreach(var l in landmarks){var go=Spawn(l.Item3,l.Item2,1.35f,l.Item1);if(go==null){go=GameObject.CreatePrimitive(PrimitiveType.Cube);go.transform.position=l.Item2;}var t=new GameObject("Label").AddComponent<TextMesh>();t.text=l.Item1;t.fontSize=48;t.characterSize=.08f;t.anchor=TextAnchor.MiddleCenter;t.transform.SetParent(go.transform,false);t.transform.localPosition=new(0,10,0);}}
+ void Life(){for(int i=0;i<80;i++){float x=(float)rng.NextDouble()*570-285,z=(float)rng.NextDouble()*570-285;if(Mathf.Abs(x)<125&&Mathf.Abs(z)<125)continue;if(Mathf.Abs(x%RoadSpacing)<8||Mathf.Abs(z%RoadSpacing)<8)continue;Tree(new(x,0,z),.8f+(float)rng.NextDouble()*.5f);}foreach(var p in new[]{new(-210,0,-80),new(210,0,80),new(-205,0,120),new(205,0,-120)})for(int j=0;j<9;j++)Tree(p+new Vector3((float)rng.NextDouble()*44-22,0,(float)rng.NextDouble()*36-18),.9f);var cars=new[]{"External/vehicles/sedan","External/vehicles/suv","External/vehicles/taxi"};for(int i=0;i<34;i++){var p=new Vector3((float)rng.NextDouble()*500-250,.2f,(float)rng.NextDouble()*500-250);if(Mathf.Abs(p.x%RoadSpacing)>10&&Mathf.Abs(p.z%RoadSpacing)>10)continue;Spawn(cars[rng.Next(cars.Length)],p,1,"ParkedCar");}}
+ void Tree(Vector3 p,float s){var root=new GameObject("StreetTree");root.transform.SetPositionAndRotation(p,Quaternion.identity);root.transform.localScale=Vector3.one*s;var tr=GameObject.CreatePrimitive(PrimitiveType.Cylinder);tr.transform.SetParent(root.transform,false);tr.transform.localPosition=Vector3.up*1.2f;tr.transform.localScale=new(.22f,1.2f,.22f);tr.GetComponent<Renderer>().material=Mat(new(.36f,.23f,.15f));var cr=GameObject.CreatePrimitive(PrimitiveType.Sphere);cr.transform.SetParent(root.transform,false);cr.transform.localPosition=Vector3.up*3;cr.transform.localScale=Vector3.one*2.3f;cr.GetComponent<Renderer>().material=Mat(new(.18f,.42f,.23f));}
+ GameObject Spawn(string path,Vector3 p,float s,string n){var prefab=Resources.Load<GameObject>(path);if(prefab==null)return null;var go=Instantiate(prefab,p,Quaternion.identity);go.name=n;go.transform.localScale*=s;return go;}
+ static Material Mat(Color c){var sh=Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Standard");var m=new Material(sh);m.color=c;m.SetFloat("_Smoothness",.15f);return m;}
+}
+}
