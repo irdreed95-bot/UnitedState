@@ -1,6 +1,6 @@
 extends Node3D
 
-const CITY_SIZE := 220.0
+const CITY_SIZE := 600.0
 const BATCH_ONE := "Real World Foundation"
 const SAVE_PATH := "user://corrupt_state_save.json"
 const MISSIONS := ["إكمال تسجيل المواطن", "فتح حساب بنكي", "استخراج رخصة القيادة", "شراء أول مركبة", "اختيار وظيفة", "زيارة مركز الشرطة", "زيارة المستشفى", "زيارة المحكمة", "التعرف على منطقة العصابات", "إكمال أول مهمة عمل", "شراء منزل أو شقة", "بناء سمعة داخل المدينة"]
@@ -38,6 +38,7 @@ var in_vehicle := false
 var inventory := {"ماء": 3, "طعام": 2, "إسعاف": 1, "ذخيرة": 20, "هوية": 1}
 
 func _ready() -> void:
+	get_viewport().set_embedding_subwindows(false)
 	_load_game()
 	world = RPWorldBuilder.new()
 	world.name = "World"
@@ -84,9 +85,13 @@ func _build_player() -> void:
 	player.position = Vector3(0, 1.2, 28)
 	world.add_child(player)
 	camera = Camera3D.new()
-	camera.current = true
 	camera.fov = 68.0
+	camera.near = 0.05
+	camera.far = 1200.0
+	camera.position = player.position + Vector3(0, 6.5, 10.5)
 	world.add_child(camera)
+	camera.make_current()
+	camera.current = true
 
 func _build_npcs() -> void:
 	var data := [["شرطي", Vector3(-55, 1.0, -48), Color("#254f86")], ["مسعف", Vector3(55, 1.0, -48), Color("#d6d6d6")], ["موظف بنك", Vector3(-55, 1.0, 55), Color("#c4a65c")], ["موظف حكومة", Vector3(55, 1.0, 55), Color("#8356a0")], ["ميكانيكي", Vector3(0, 1.0, -92), Color("#8b5931")], ["تاجر", Vector3(0, 1.0, 92), Color("#3b8867")], ["زعيم عصابة", Vector3(-92, 1.0, 92), Color("#9a294d")]]
