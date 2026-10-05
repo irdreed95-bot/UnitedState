@@ -2,7 +2,7 @@
 set -euo pipefail
 
 BASE="https://raw.githubusercontent.com"
-mkdir -p assets/external/city assets/external/vehicles assets/external/character assets/external/roads assets/fonts
+mkdir -p assets/external/city assets/external/vehicles assets/external/character assets/external/roads assets/external/nature assets/fonts
 
 download() {
   local url="$1"
@@ -19,25 +19,41 @@ PY
   test -s "$out"
 }
 
-# Kenney assets are CC0. The mirrored GLB files below come from a public asset
-# library that identifies the original source as Kenney and preserves the CC0 license.
-download "$BASE/Hidencod/tge-assets/main/packs/city-kit-commercial/building-a.glb" assets/external/city/commercial_a.glb
-download "$BASE/Hidencod/tge-assets/main/packs/city-kit-commercial/building-b.glb" assets/external/city/commercial_b.glb
-download "$BASE/Hidencod/tge-assets/main/packs/city-kit-commercial/building-skyscraper-a.glb" assets/external/city/skyscraper_a.glb
-download "$BASE/Hidencod/tge-assets/main/packs/city-kit-commercial/building-skyscraper-b.glb" assets/external/city/skyscraper_b.glb
-download "$BASE/Hidencod/tge-assets/main/packs/city-kit-commercial/building-skyscraper-c.glb" assets/external/city/skyscraper_c.glb
-download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/building-type-a.glb" assets/external/city/suburban_a.glb
-download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/building-type-b.glb" assets/external/city/suburban_b.glb
-download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/building-type-c.glb" assets/external/city/suburban_c.glb
+# Kenney CC0 City Kit Commercial.
+for pair in \
+  "a commercial_a" "b commercial_b" "c commercial_c" "d commercial_d" \
+  "e commercial_e" "f commercial_f" "g commercial_g" "h commercial_h" \
+  "skyscraper-a skyscraper_a" "skyscraper-b skyscraper_b" "skyscraper-c skyscraper_c" \
+  "skyscraper-d skyscraper_d" "skyscraper-e skyscraper_e"; do
+  set -- $pair
+  download "$BASE/Hidencod/tge-assets/main/packs/city-kit-commercial/building-$1.glb" "assets/external/city/$2.glb"
+done
+
+# Kenney CC0 City Kit Suburban.
+for pair in \
+  "a suburban_a" "b suburban_b" "c suburban_c" "d suburban_d" \
+  "e suburban_e" "f suburban_f"; do
+  set -- $pair
+  download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/building-type-$1.glb" "assets/external/city/$2.glb"
+done
+download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/tree-large.glb" assets/external/nature/tree-large.glb
+download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/tree-small.glb" assets/external/nature/tree-small.glb
+
+# Kenney CC0 Car Kit. Different vehicle silhouettes are used for traffic/parking.
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/sedan.glb" assets/external/vehicles/sedan.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/suv.glb" assets/external/vehicles/suv.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/taxi.glb" assets/external/vehicles/taxi.glb
+download "$BASE/Hidencod/tge-assets/main/packs/car-kit/sedan-sports.glb" assets/external/vehicles/sedan_sports.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/police.glb" assets/external/vehicles/police.glb
-download "$BASE/Hidencod/tge-assets/main/packs/city-kit-roads/road-straight.glb" assets/external/roads/road-straight.glb
+download "$BASE/Hidencod/tge-assets/main/packs/car-kit/ambulance.glb" assets/external/vehicles/ambulance.glb
+download "$BASE/Hidencod/tge-assets/main/packs/car-kit/firetruck.glb" assets/external/vehicles/firetruck.glb
+download "$BASE/Hidencod/tge-assets/main/packs/car-kit/truck.glb" assets/external/vehicles/truck.glb
+download "$BASE/Hidencod/tge-assets/main/packs/car-kit/van.glb" assets/external/vehicles/van.glb
+
+# Quaternius Universal Base Characters, CC0.
 download "$BASE/programasweights/avatar/main/public/assets/character.glb" assets/external/character/citizen.glb
 
-# Noto Sans Arabic is distributed under the SIL Open Font License and provides
-# reliable Arabic shaping for the Web and Android HUD.
+# Noto Sans Arabic, SIL Open Font License.
 download "https://raw.githubusercontent.com/notofonts/noto-fonts/main/unhinted/ttf/NotoSansArabic/NotoSansArabic-Regular.ttf" assets/fonts/NotoSansArabic-Regular.ttf
 
 cat > assets/external/ASSET_SOURCES.txt <<'EOF'
@@ -45,19 +61,21 @@ Corrupt State RP external asset manifest
 
 Kenney City Kit Commercial / Suburban / Car Kit
 Original license: CC0 1.0
-Source: https://kenney.nl/assets/city-kit-commercial
-Source: https://kenney.nl/assets/city-kit-suburban
-Source: https://kenney.nl/assets/car-kit
+Official source: https://kenney.nl/assets/city-kit-commercial
+Official source: https://kenney.nl/assets/city-kit-suburban
+Official source: https://kenney.nl/assets/car-kit
+Build-time mirror: https://github.com/Hidencod/tge-assets
 
 Quaternius Universal Base Characters
 Original license: CC0 1.0
 Source: https://quaternius.com/packs/universalbasecharacters.html
+Build-time mirror: https://github.com/programasweights/avatar
 
-Build-time mirrors:
-https://github.com/Hidencod/tge-assets
-https://github.com/programasweights/avatar
+Noto Sans Arabic
+License: SIL Open Font License
+Source: https://github.com/notofonts/noto-fonts
 
-The game incorporates these assets into the compiled game and does not expose the source packs as a standalone download.
+All assets are incorporated into the compiled game; the project does not ship the source packs as standalone downloads.
 EOF
 
 echo "External asset bootstrap complete:"
