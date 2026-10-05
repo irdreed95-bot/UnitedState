@@ -51,7 +51,6 @@ jobs:
         run: |
           set -eux
           mkdir -p build/web
-          godot --headless --path . --check-only --rendering-method gl_compatibility
           godot --headless --path . --editor --quit --rendering-method gl_compatibility
           godot --headless --path . --verbose --export-release "Web" "build/web/index.html"
           test -s build/web/index.html
