@@ -36,6 +36,29 @@ func _spawn_car() -> void:
     var car := VehicleBody3D.new()
     car.mass = 950.0
     car.position = lanes[randi() % lanes.size()]
+    var asset_path := "res://assets/external/vehicles/sedan.glb"
+    if ResourceLoader.exists(asset_path):
+        var scene := load(asset_path) as PackedScene
+        if scene:
+            var visual := scene.instantiate()
+            visual.name = "TrafficSedan"
+            visual.position.y = 0.20
+            car.add_child(visual)
+        else:
+            _add_fallback_car_body(car)
+    else:
+        _add_fallback_car_body(car)
+    var collision := CollisionShape3D.new()
+    var shape := BoxShape3D.new()
+    shape.size = Vector3(1.7, 0.55, 3.6)
+    collision.shape = shape
+    collision.position.y = 0.75
+    car.add_child(collision)
+    car.set_meta("traffic_speed", randf_range(4.0, 8.0))
+    add_child(car)
+    cars.append(car)
+
+func _add_fallback_car_body(car: VehicleBody3D) -> void:
     var body := MeshInstance3D.new()
     var mesh := BoxMesh.new()
     mesh.size = Vector3(1.7, 0.55, 3.6)
@@ -46,12 +69,3 @@ func _spawn_car() -> void:
     body.material_override = mat
     body.position.y = 0.75
     car.add_child(body)
-    var collision := CollisionShape3D.new()
-    var shape := BoxShape3D.new()
-    shape.size = Vector3(1.7, 0.55, 3.6)
-    collision.shape = shape
-    collision.position.y = 0.75
-    car.add_child(collision)
-    car.set_meta("traffic_speed", randf_range(4.0, 8.0))
-    add_child(car)
-    cars.append(car)
