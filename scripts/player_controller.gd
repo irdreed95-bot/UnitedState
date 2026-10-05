@@ -48,59 +48,19 @@ func _build_humanoid() -> void:
 	body_visual = Node3D.new()
 	body_visual.name = "CitizenCharacter"
 	add_child(body_visual)
-	_add_capsule("Coat", Vector3(0, 1.02, 0), 0.9, 0.34, Color("#26394c"))
-	_add_sphere("Head", Vector3(0, 1.82, 0), 0.28, Color("#c98f68"))
-	_add_box("Pelvis", Vector3(0, 0.60, 0), Vector3(0.60, 0.34, 0.38), Color("#151c25"))
-	_add_box("LeftArm", Vector3(-0.43, 1.02, 0), Vector3(0.17, 0.72, 0.18), Color("#26394c"))
-	_add_box("RightArm", Vector3(0.43, 1.02, 0), Vector3(0.17, 0.72, 0.18), Color("#26394c"))
-	_add_box("LeftLeg", Vector3(-0.18, 0.27, 0), Vector3(0.21, 0.62, 0.24), Color("#101722"))
-	_add_box("RightLeg", Vector3(0.18, 0.27, 0), Vector3(0.21, 0.62, 0.24), Color("#101722"))
-	_add_box("LeftShoe", Vector3(-0.18, -0.08, -0.08), Vector3(0.24, 0.16, 0.42), Color("#080b0f"))
-	_add_box("RightShoe", Vector3(0.18, -0.08, -0.08), Vector3(0.24, 0.16, 0.42), Color("#080b0f"))
-
-func _add_box(n: String, p: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
-	var m := MeshInstance3D.new()
-	m.name = n
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	m.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 0.58
-	m.material_override = mat
-	m.position = p
-	body_visual.add_child(m)
-	return m
-
-func _add_capsule(n: String, p: Vector3, height: float, radius: float, color: Color) -> MeshInstance3D:
-	var m := MeshInstance3D.new()
-	m.name = n
-	var mesh := CapsuleMesh.new()
-	mesh.height = height
-	mesh.radius = radius
-	m.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 0.62
-	m.material_override = mat
-	m.position = p
-	body_visual.add_child(m)
-	return m
-
-func _add_sphere(n: String, p: Vector3, radius: float, color: Color) -> MeshInstance3D:
-	var m := MeshInstance3D.new()
-	m.name = n
-	var mesh := SphereMesh.new()
-	mesh.radius = radius
-	mesh.height = radius * 2.0
-	m.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 0.58
-	m.material_override = mat
-	m.position = p
-	body_visual.add_child(m)
-	return m
+	var asset_path := "res://assets/external/character/citizen.glb"
+	if ResourceLoader.exists(asset_path):
+		var scene := load(asset_path) as PackedScene
+		if scene:
+			var citizen := scene.instantiate()
+			citizen.name = "QuaterniusCitizen"
+			citizen.scale = Vector3.ONE
+			citizen.position = Vector3(0, 0, 0)
+			body_visual.add_child(citizen)
+			return
+	# Fallback only when the external asset is unavailable.
+	_add_capsule("FallbackBody", Vector3(0, 1.02, 0), 0.9, 0.34, Color("#26394c"))
+	_add_sphere("FallbackHead", Vector3(0, 1.82, 0), 0.28, Color("#c98f68"))
 
 func _build_animation_system() -> void:
 	animation_player = AnimationPlayer.new()
