@@ -97,6 +97,17 @@ func _build_npcs() -> void:
 	for item in data:
 		var npc := Node3D.new()
 		npc.name = str(item[0])
+		npc.position = item[1]
+		var asset_path := "res://assets/external/character/citizen.glb"
+		if ResourceLoader.exists(asset_path):
+			var scene := load(asset_path) as PackedScene
+			if scene:
+				var citizen := scene.instantiate()
+				citizen.name = "Citizen_" + str(item[0])
+				npc.add_child(citizen)
+				world.add_child(npc)
+				continue
+		# Fallback only if the licensed citizen asset is unavailable.
 		var mesh := MeshInstance3D.new()
 		var capsule := CapsuleMesh.new()
 		capsule.height = 1.9
@@ -106,7 +117,6 @@ func _build_npcs() -> void:
 		mat.albedo_color = item[2]
 		mesh.material_override = mat
 		npc.add_child(mesh)
-		npc.position = item[1]
 		world.add_child(npc)
 
 func _build_vehicles() -> void:
