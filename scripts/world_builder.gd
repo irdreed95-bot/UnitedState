@@ -102,23 +102,15 @@ func _build_real_city() -> void:
 	var assets := [
 		"res://assets/external/city/commercial_a.glb",
 		"res://assets/external/city/commercial_b.glb",
-		"res://assets/external/city/commercial_c.glb",
-		"res://assets/external/city/commercial_d.glb",
-		"res://assets/external/city/commercial_e.glb",
-		"res://assets/external/city/commercial_f.glb",
-		"res://assets/external/city/commercial_g.glb",
-		"res://assets/external/city/commercial_h.glb",
 		"res://assets/external/city/skyscraper_a.glb",
 		"res://assets/external/city/skyscraper_b.glb",
 		"res://assets/external/city/skyscraper_c.glb",
-		"res://assets/external/city/skyscraper_d.glb",
-		"res://assets/external/city/skyscraper_e.glb",
 		"res://assets/external/city/suburban_a.glb",
 		"res://assets/external/city/suburban_b.glb",
 		"res://assets/external/city/suburban_c.glb",
 		"res://assets/external/city/suburban_d.glb",
 		"res://assets/external/city/suburban_e.glb",
-		"res://assets/external/city/suburban_f.glb"
+		"res://assets/external/city/suburban_c.glb"
 	]
 	var available: Array[String] = []
 	for path in assets:
@@ -173,16 +165,16 @@ func _add_real_building(p: Vector3, asset_path: String, central: bool) -> void:
 
 func _build_landmarks() -> void:
 	var landmark_data := [
-		["مركز الشرطة", Vector3(-65,0,-65), "res://assets/external/city/commercial_d.glb"],
-		["المستشفى", Vector3(65,0,-65), "res://assets/external/city/commercial_e.glb"],
-		["البنك المركزي", Vector3(-65,0,65), "res://assets/external/city/commercial_f.glb"],
-		["دار الحكومة", Vector3(65,0,65), "res://assets/external/city/commercial_g.glb"],
-		["المحكمة", Vector3(-105,0,0), "res://assets/external/city/commercial_h.glb"],
-		["السجن", Vector3(105,0,0), "res://assets/external/city/commercial_c.glb"],
-		["الكراج", Vector3(0,0,-105), "res://assets/external/city/commercial_b.glb"],
-		["السوق", Vector3(0,0,105), "res://assets/external/city/commercial_a.glb"],
-		["منطقة العصابات", Vector3(-105,0,105), "res://assets/external/city/suburban_f.glb"],
-		["الميناء", Vector3(105,0,105), "res://assets/external/city/commercial_d.glb"]
+		["مركز الشرطة", Vector3(-65,0,-65), "res://assets/external/city/commercial_a.glb"],
+		["المستشفى", Vector3(65,0,-65), "res://assets/external/city/commercial_b.glb"],
+		["البنك المركزي", Vector3(-65,0,65), "res://assets/external/city/skyscraper_a.glb"],
+		["دار الحكومة", Vector3(65,0,65), "res://assets/external/city/skyscraper_b.glb"],
+		["المحكمة", Vector3(-105,0,0), "res://assets/external/city/suburban_a.glb"],
+		["السجن", Vector3(105,0,0), "res://assets/external/city/suburban_b.glb"],
+		["الكراج", Vector3(0,0,-105), "res://assets/external/city/commercial_a.glb"],
+		["السوق", Vector3(0,0,105), "res://assets/external/city/commercial_b.glb"],
+		["منطقة العصابات", Vector3(-105,0,105), "res://assets/external/city/suburban_c.glb"],
+		["الميناء", Vector3(105,0,105), "res://assets/external/city/commercial_a.glb"]
 	]
 	for item in landmark_data:
 		var body := StaticBody3D.new()
@@ -215,37 +207,57 @@ func _add_landmark_sign(parent: Node3D, title: String) -> void:
 	parent.add_child(label)
 
 func _build_city_life() -> void:
-	var tree_large := "res://assets/external/nature/tree-large.glb"
-	var tree_small := "res://assets/external/nature/tree-small.glb"
-	for i in range(80):
+		for i in range(80):
 		var x := rng.randf_range(-285.0, 285.0)
 		var z := rng.randf_range(-285.0, 285.0)
 		if abs(x) < 125.0 and abs(z) < 125.0:
 			continue
 		if abs(fmod(x, ROAD_SPACING)) < 8.0 or abs(fmod(z, ROAD_SPACING)) < 8.0:
 			continue
-		var path := tree_large if i % 3 != 0 else tree_small
-		_add_asset(path, Vector3(x, 0, z), Vector3.ONE * rng.randf_range(0.9, 1.25), "Tree")
+		_add_procedural_tree(Vector3(x, 0, z), rng.randf_range(0.8, 1.3))
 
 	# Park clusters around the city.
 	for p in [Vector3(-210,0,-80), Vector3(210,0,80), Vector3(-205,0,120), Vector3(205,0,-120)]:
 		for j in range(9):
 			var q := p + Vector3(rng.randf_range(-22,22),0,rng.randf_range(-18,18))
-			_add_asset(tree_small, q, Vector3.ONE * rng.randf_range(0.9,1.15), "ParkTree")
+			_add_procedural_tree(q, rng.randf_range(0.8, 1.15))
 
 	# Parked vehicles make the streets read as inhabited even before AI traffic moves.
 	var cars := [
 		"res://assets/external/vehicles/sedan.glb",
 		"res://assets/external/vehicles/suv.glb",
 		"res://assets/external/vehicles/taxi.glb",
-		"res://assets/external/vehicles/sedan_sports.glb"
-	]
+			]
 	for i in range(34):
 		var p := Vector3(rng.randf_range(-250,250), 0.2, rng.randf_range(-250,250))
 		if abs(fmod(p.x, ROAD_SPACING)) > 10.0 and abs(fmod(p.z, ROAD_SPACING)) > 10.0:
 			continue
 		var path := cars[rng.randi_range(0,cars.size()-1)]
 		_add_asset(path, p, Vector3.ONE * 1.0, "ParkedCar")
+
+func _add_procedural_tree(p: Vector3, scale_value: float) -> void:
+	var root := Node3D.new()
+	root.name = "StreetTree"
+	root.position = p
+	root.scale = Vector3.ONE * scale_value
+	var trunk := MeshInstance3D.new()
+	var trunk_mesh := CylinderMesh.new()
+	trunk_mesh.top_radius = 0.16
+	trunk_mesh.bottom_radius = 0.22
+	trunk_mesh.height = 2.4
+	trunk.mesh = trunk_mesh
+	trunk.position.y = 1.2
+	trunk.material_override = _material(Color("#5b3b26"))
+	root.add_child(trunk)
+	var crown := MeshInstance3D.new()
+	var crown_mesh := SphereMesh.new()
+	crown_mesh.radius = 1.15
+	crown_mesh.height = 2.3
+	crown.mesh = crown_mesh
+	crown.position.y = 3.0
+	crown.material_override = _material(Color("#2f6b3b"))
+	root.add_child(crown)
+	add_child(root)
 
 func _add_asset(path: String, p: Vector3, scale_value: Vector3, node_name: String) -> void:
 	var scene := _load_scene(path)
