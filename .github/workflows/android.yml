@@ -58,6 +58,10 @@ jobs:
           : > android/build/.gdignore
           unzip -q "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable/android_source.zip" -d android/build
           test -f android/build/build.gradle || test -f android/build/settings.gradle
+      - name: Fetch licensed 3D game assets
+        run: |
+          chmod +x scripts/download_external_assets.sh
+          ./scripts/download_external_assets.sh
       - name: Validate project
         run: godot --headless --path . --editor --quit --rendering-method gl_compatibility
       - name: Prepare Android debug keystore
