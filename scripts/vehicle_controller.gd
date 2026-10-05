@@ -1,10 +1,10 @@
 class_name RPVehicleController
 extends VehicleBody3D
 
-@export var engine_power := 38.0
-@export var brake_power := 28.0
-@export var steering_limit := 0.48
-var player_controlled := false
+@export var engine_power: float = 38.0
+@export var brake_power: float = 28.0
+@export var steering_limit: float = 0.48
+var player_controlled: bool = false
 
 func _ready() -> void:
 	mass = 1100.0
@@ -20,11 +20,11 @@ func set_controlled(value: bool) -> void:
 func drive(input: Vector2, delta: float) -> void:
 	if not player_controlled:
 		return
-	var throttle := clamp(-input.y, -1.0, 1.0)
-	var steer := clamp(input.x, -1.0, 1.0)
+	var throttle: float = clampf(-input.y, -1.0, 1.0)
+	var steer: float = clampf(input.x, -1.0, 1.0)
 	engine_force = throttle * engine_power
-	brake = brake_power if abs(throttle) < 0.05 else 0.0
-	var steering_target := steer * steering_limit
+	brake = brake_power if absf(throttle) < 0.05 else 0.0
+	var steering_target: float = steer * steering_limit
 	for child in get_children():
 		if child is VehicleWheel3D and child.use_as_steering:
 			child.steering = move_toward(child.steering, steering_target, delta * 3.5)
@@ -60,7 +60,7 @@ func _build_chassis() -> void:
 	add_child(glass)
 
 func _build_wheels() -> void:
-	var positions := [Vector3(-0.92, 0.45, -1.35), Vector3(0.92, 0.45, -1.35), Vector3(-0.92, 0.45, 1.35), Vector3(0.92, 0.45, 1.35)]
+	var positions: Array[Vector3] = [Vector3(-0.92, 0.45, -1.35), Vector3(0.92, 0.45, -1.35), Vector3(-0.92, 0.45, 1.35), Vector3(0.92, 0.45, 1.35)]
 	for i in positions.size():
 		var wheel := VehicleWheel3D.new()
 		wheel.name = "Wheel_%d" % i
