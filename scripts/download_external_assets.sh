@@ -19,36 +19,31 @@ PY
   test -s "$out"
 }
 
-# Kenney CC0 City Kit Commercial.
-for pair in \
-  "a commercial_a" "b commercial_b" "c commercial_c" "d commercial_d" \
-  "e commercial_e" "f commercial_f" "g commercial_g" "h commercial_h" \
-  "skyscraper-a skyscraper_a" "skyscraper-b skyscraper_b" "skyscraper-c skyscraper_c" \
-  "skyscraper-d skyscraper_d" "skyscraper-e skyscraper_e"; do
+# Kenney CC0 City Kit Commercial / Suburban.
+for pair in "a commercial_a" "b commercial_b"; do
+  set -- $pair
+  download "$BASE/Hidencod/tge-assets/main/packs/city-kit-commercial/building-$1.glb" "assets/external/city/$2.glb"
+done
+for pair in "skyscraper-a skyscraper_a" "skyscraper-b skyscraper_b" "skyscraper-c skyscraper_c"; do
   set -- $pair
   download "$BASE/Hidencod/tge-assets/main/packs/city-kit-commercial/building-$1.glb" "assets/external/city/$2.glb"
 done
 
-# Kenney CC0 City Kit Suburban.
-for pair in \
-  "a suburban_a" "b suburban_b" "c suburban_c" "d suburban_d" \
-  "e suburban_e" "f suburban_f"; do
+for pair in "a suburban_a" "b suburban_b" "c suburban_c"; do
   set -- $pair
   download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/building-type-$1.glb" "assets/external/city/$2.glb"
 done
 download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/tree-large.glb" assets/external/nature/tree-large.glb
 download "$BASE/Hidencod/tge-assets/main/packs/city-kit-suburban/tree-small.glb" assets/external/nature/tree-small.glb
 
-# Kenney CC0 Car Kit. Different vehicle silhouettes are used for traffic/parking.
+# Kenney CC0 Car Kit - confirmed files.
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/sedan.glb" assets/external/vehicles/sedan.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/suv.glb" assets/external/vehicles/suv.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/taxi.glb" assets/external/vehicles/taxi.glb
-download "$BASE/Hidencod/tge-assets/main/packs/car-kit/sedan-sports.glb" assets/external/vehicles/sedan_sports.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/police.glb" assets/external/vehicles/police.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/ambulance.glb" assets/external/vehicles/ambulance.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/firetruck.glb" assets/external/vehicles/firetruck.glb
-download "$BASE/Hidencod/tge-assets/main/packs/car-kit/truck.glb" assets/external/vehicles/truck.glb
-download "$BASE/Hidencod/tge-assets/main/packs/car-kit/van.glb" assets/external/vehicles/van.glb
+download "$BASE/Hidencod/tge-assets/main/packs/city-kit-roads/road-straight.glb" assets/external/roads/road-straight.glb
 
 # Quaternius Universal Base Characters, CC0.
 download "$BASE/programasweights/avatar/main/public/assets/character.glb" assets/external/character/citizen.glb
