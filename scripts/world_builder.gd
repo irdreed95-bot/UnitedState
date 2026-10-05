@@ -8,35 +8,44 @@ var grid: GridMap
 func build() -> void:
 	_build_environment()
 	_build_grid_city()
+	_build_procedural_city()
 	_build_collision_landmarks()
 	build_street_details()
 
 func _build_environment() -> void:
 	var env_node := WorldEnvironment.new()
 	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color("#18283a")
-	env.background_color = Color("#08111d")
+	env.background_mode = Environment.BG_SKY
+	var sky := Sky.new()
+	var sky_mat := ProceduralSkyMaterial.new()
+	sky_mat.sky_top_color = Color("#07111f")
+	sky_mat.sky_horizon_color = Color("#5e7184")
+	sky_mat.ground_bottom_color = Color("#0a1118")
+	sky_mat.ground_horizon_color = Color("#334250")
+	sky_mat.sun_angle_max = 18.0
+	sky.material = sky_mat
+	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("#9fb7d0")
-	env.ambient_light_energy = 0.72
+	env.ambient_light_color = Color("#a9bdd0")
+	env.ambient_light_energy = 0.82
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.glow_enabled = false
 	env.ssao_enabled = false
 	env.sdfgi_enabled = false
-	env.background_energy_multiplier = 0.85
+	env.background_energy_multiplier = 0.9
 	env_node.environment = env
 	add_child(env_node)
+
 	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52, -30, 0)
-	sun.light_energy = 1.35
+	sun.rotation_degrees = Vector3(-48, -32, 0)
+	sun.light_energy = 1.15
 	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 180.0
+	sun.directional_shadow_max_distance = 220.0
 	add_child(sun)
 
 func _build_grid_city() -> void:
 	grid = GridMap.new()
-	grid.name = "CityGridMap"
+	grid.name = "CityRoadGrid"
 	grid.cell_size = Vector3(CELL, CELL, CELL)
 	grid.cell_octant_size = 8
 	grid.collision_layer = 1
@@ -44,26 +53,17 @@ func _build_grid_city() -> void:
 	var library := MeshLibrary.new()
 	library.create_item(0)
 	library.set_item_name(0, "Road")
-	library.set_item_mesh(0, _box_mesh(Vector3(CELL, 0.2, CELL), Color("#12171d")))
-	library.set_item_shapes(0, [_shape_box(Vector3(CELL, 0.2, CELL)), Transform3D.IDENTITY])
-	library.create_item(1)
-	library.set_item_name(1, "Building")
-	library.set_item_mesh(1, _box_mesh(Vector3(CELL * 0.86, CELL * 2.0, CELL * 0.86), Color("#3c4854")))
-	library.set_item_shapes(1, [_shape_box(Vector3(CELL * 0.86, CELL * 2.0, CELL * 0.86)), Transform3D.IDENTITY])
-	library.create_item(2)
-	library.set_item_name(2, "BuildingDark")
-	library.set_item_mesh(2, _box_mesh(Vector3(CELL * 0.86, CELL * 3.0, CELL * 0.86), Color("#4a4650")))
-	library.set_item_shapes(2, [_shape_box(Vector3(CELL * 0.86, CELL * 3.0, CELL * 0.86)), Transform3D.IDENTITY])
+	library.set_item_mesh(0, _box_mesh(Vector3(CELL, 0.18, CELL), Color("#161b21")))
+	library.set_item_shapes(0, [_shape_box(Vector3(CELL, 0.18, CELL)), Transform3D.IDENTITY])
 	grid.mesh_library = library
 	add_child(grid)
+
 	for x in range(-30, 31):
 		for z in range(-30, 31):
 			var road: bool = abs(x) <= 1 or abs(z) <= 1 or abs(x) % 4 == 0 or abs(z) % 4 == 0
 			if road:
 				grid.set_cell_item(Vector3i(x, 0, z), 0)
-			else:
-				var id := 1 if (x + z) % 2 == 0 else 2
-				grid.set_cell_item(Vector3i(x, 1, z), id)
+
 	var ground := StaticBody3D.new()
 	ground.name = "CityGround"
 	var mesh := MeshInstance3D.new()
@@ -71,8 +71,8 @@ func _build_grid_city() -> void:
 	plane.size = Vector3(CITY_SIZE, 1.0, CITY_SIZE)
 	mesh.mesh = plane
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color("#263039")
-	mat.roughness = 0.9
+	mat.albedo_color = Color("#202b35")
+	mat.roughness = 0.94
 	mesh.material_override = mat
 	mesh.position.y = -0.55
 	ground.add_child(mesh)
@@ -84,6 +84,79 @@ func _build_grid_city() -> void:
 	ground.add_child(col)
 	add_child(ground)
 
+func _build_procedural_city() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 9527
+	for x in range(-28, 29, 2):
+		for z in range(-28, 29, 2):
+			if abs(x) <= 1 or abs(z) <= 1 or abs(x) % 4 == 0 or abs(z) % 4 == 0:
+				continue
+			var p := Vector3(x * CELL, 0.0, z * CELL)
+			var h: float = rng.randf_range(8.0, 28.0)
+			if abs(x) < 7 and abs(z) < 7:
+				h = rng.randf_range(14.0, 38.0)
+			_add_building(p, Vector3(rng.randf_range(6.5, 8.2), h, rng.randf_range(6.5, 8.2)), rng.randi_range(0, 4), rng)
+
+func _add_building(p: Vector3, size: Vector3, style: int, rng: RandomNumberGenerator) -> void:
+	var body := StaticBody3D.new()
+	body.position = p + Vector3(0, size.y * 0.5, 0)
+
+	var main := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	main.mesh = mesh
+	var mat := StandardMaterial3D.new()
+	var palettes := [Color("#344451"), Color("#4b4f59"), Color("#5b5960"), Color("#293a48"), Color("#665d52")]
+	mat.albedo_color = palettes[style]
+	mat.roughness = 0.7
+	main.material_override = mat
+	body.add_child(main)
+
+	var windows_mat := StandardMaterial3D.new()
+	windows_mat.albedo_color = Color("#a9c9d8")
+	windows_mat.emission_enabled = true
+	windows_mat.emission = Color("#27495a")
+	windows_mat.emission_energy_multiplier = 0.45
+	for side in [-1, 1]:
+		for floor_i in range(1, max(2, int(size.y / 3.0))):
+			if floor_i % 2 == 0:
+				var win := MeshInstance3D.new()
+				var wm := BoxMesh.new()
+				wm.size = Vector3(0.16, 0.85, size.z * 0.52)
+				win.mesh = wm
+				win.position = Vector3(side * (size.x * 0.5 + 0.09), floor_i * 2.5, 0)
+				win.material_override = windows_mat
+				body.add_child(win)
+
+	var roof := MeshInstance3D.new()
+	var roof_mesh := BoxMesh.new()
+	roof_mesh.size = Vector3(size.x * 0.84, 0.28, size.z * 0.84)
+	roof.mesh = roof_mesh
+	roof.position.y = size.y * 0.5 + 0.16
+	var roof_mat := StandardMaterial3D.new()
+	roof_mat.albedo_color = Color("#151a20")
+	roof_mat.roughness = 0.6
+	roof.material_override = roof_mat
+	body.add_child(roof)
+
+	var col := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	col.shape = shape
+	body.add_child(col)
+	add_child(body)
+
+	if rng.randf() > 0.65:
+		var sign := MeshInstance3D.new()
+		var sign_mesh := BoxMesh.new()
+		sign_mesh.size = Vector3(min(3.0, size.x * 0.55), 0.55, 0.12)
+		sign.mesh = sign_mesh
+		sign.position = Vector3(0, min(size.y - 1.0, 4.0), -size.z * 0.51)
+		var sign_mat := StandardMaterial3D.new()
+		sign_mat.albedo_color = Color("#b83b45")
+		sign.material_override = sign_mat
+		body.add_child(sign)
+
 func _shape_box(size: Vector3) -> BoxShape3D:
 	var shape := BoxShape3D.new()
 	shape.size = size
@@ -94,7 +167,7 @@ func _box_mesh(size: Vector3, color: Color) -> BoxMesh:
 	mesh.size = size
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
-	mat.roughness = 0.78
+	mat.roughness = 0.82
 	mesh.material = mat
 	return mesh
 
@@ -118,6 +191,15 @@ func _build_collision_landmarks() -> void:
 		var mesh := MeshInstance3D.new()
 		mesh.mesh = _box_mesh(item[2], item[3])
 		body.add_child(mesh)
+		var roof := MeshInstance3D.new()
+		var roof_mesh := BoxMesh.new()
+		roof_mesh.size = Vector3(item[2].x * 0.82, 0.35, item[2].z * 0.82)
+		roof.mesh = roof_mesh
+		roof.position.y = item[2].y * 0.5 + 0.2
+		var roof_mat := StandardMaterial3D.new()
+		roof_mat.albedo_color = Color("#151a20")
+		roof.material_override = roof_mat
+		body.add_child(roof)
 		var col := CollisionShape3D.new()
 		var shape := BoxShape3D.new()
 		shape.size = item[2]
@@ -133,6 +215,21 @@ func build_street_details() -> void:
 	for z in range(-28, 29, 4):
 		_add_street_light(Vector3(-half, 0, z * CELL))
 		_add_street_light(Vector3(half, 0, z * CELL))
+	for x in range(-280, 281, 40):
+		_add_lane_mark(Vector3(x, 0.12, 0), Vector3(3.0, 0.035, 0.16))
+		_add_lane_mark(Vector3(0, 0.12, x), Vector3(0.16, 0.035, 3.0))
+
+func _add_lane_mark(p: Vector3, size: Vector3) -> void:
+	var mark := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mark.mesh = mesh
+	mark.position = p
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color("#d9c88d")
+	mat.roughness = 0.7
+	mark.material_override = mat
+	add_child(mark)
 
 func _add_street_light(p: Vector3) -> void:
 	var pole := MeshInstance3D.new()
@@ -147,3 +244,9 @@ func _add_street_light(p: Vector3) -> void:
 	mat.roughness = 0.7
 	pole.material_override = mat
 	add_child(pole)
+	var lamp := OmniLight3D.new()
+	lamp.light_color = Color("#ffdca0")
+	lamp.light_energy = 0.65
+	lamp.omni_range = 7.0
+	lamp.position = p + Vector3(0, 4.7, 0)
+	add_child(lamp)
