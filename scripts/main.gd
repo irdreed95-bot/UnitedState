@@ -10,6 +10,7 @@ const JOBS := {"سائق شاحنة": 900, "سائق تاكسي": 650, "ميكا
 var world: RPWorldBuilder
 var player: RPPlayerController
 var vehicle: RPVehicleController
+var traffic: RPTrafficManager
 var camera: Camera3D
 var hud: CanvasLayer
 var stats_label: Label
@@ -45,6 +46,7 @@ func _ready() -> void:
 	_build_player()
 	_build_npcs()
 	_build_vehicles()
+	_build_traffic()
 	_build_hud()
 	_show_notice("Corrupt State RP — تم تشغيل نواة العالم المفتوح الجديدة")
 	_update_hud()
@@ -111,6 +113,12 @@ func _build_vehicles() -> void:
 	vehicle.set_controlled(false)
 	world.add_child(vehicle)
 
+func _build_traffic() -> void:
+	traffic = RPTrafficManager.new()
+	traffic.name = "Traffic"
+	traffic.setup(CITY_SIZE)
+	world.add_child(traffic)
+
 func _build_hud() -> void:
 	hud = CanvasLayer.new()
 	add_child(hud)
@@ -137,6 +145,7 @@ func _build_hud() -> void:
 	_add_button("المهمة", Vector2(1030, 82), Callable(self, "_next_mission"))
 	_add_button("تفاعل", Vector2(1030, 142), Callable(self, "_interact"))
 	_add_button("السيارة", Vector2(1030, 202), Callable(self, "_vehicle"))
+	_add_button("محرك/أنوار", Vector2(1030, 502), Callable(self, "_vehicle_controls"))
 	_add_button("الجرد", Vector2(1030, 262), Callable(self, "_inventory"))
 	_add_button("الفصائل", Vector2(1030, 322), Callable(self, "_factions"))
 	_add_button("الوظائف", Vector2(1030, 382), Callable(self, "_jobs"))
@@ -254,14 +263,22 @@ func _interact() -> void:
 			_level_check()
 			_show_notice("تفاعل مدني ناجح +100$ +25 XP")
 
+func _vehicle_controls() -> void:
+	if in_vehicle and vehicle:
+		vehicle.toggle_engine()
+		vehicle.toggle_lights()
+		_show_notice("السيارة: محرك %s | الأنوار %s" % ["ON" if vehicle.engine_on else "OFF", "ON" if vehicle.headlights_on else "OFF"])
+
 func _vehicle() -> void:
 	in_vehicle = not in_vehicle
 	vehicle.set_controlled(in_vehicle)
 	if in_vehicle:
+		vehicle.engine_on = true
 		player.visible = false
 		player.set_physics_process(false)
 		_show_notice("ركبت السيارة — تحكم في التوجيه والتسارع والفرامل")
 	else:
+		vehicle.engine_on = false
 		player.global_position = vehicle.global_position + Vector3(2.2, 1.0, 0)
 		player.visible = true
 		player.set_physics_process(true)
