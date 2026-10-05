@@ -31,13 +31,20 @@ jobs:
 
       - name: Install Godot Web export templates
         run: |
+          set -eux
           mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
           curl -fsSL -o /tmp/godot-templates.tpz "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
-          unzip -q /tmp/godot-templates.tpz -d ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
-          test -f ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/templates/web_release.zip
+          rm -rf /tmp/godot-templates
+          mkdir -p /tmp/godot-templates
+          unzip -q /tmp/godot-templates.tpz -d /tmp/godot-templates
+          find /tmp/godot-templates -type f -name 'web*_*.zip' -print
+          find /tmp/godot-templates -type f -name 'web_nothreads_*.zip' -exec cp {} ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/ \;
+          test -f ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/web_nothreads_release.zip
+          test -f ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/web_nothreads_debug.zip
 
       - name: Validate and export Web
         run: |
+          set -eux
           mkdir -p build/web
           godot --headless --path . --editor --quit --rendering-method gl_compatibility
           godot --headless --path . --verbose --export-release "Web" "build/web/index.html"
