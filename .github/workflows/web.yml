@@ -29,6 +29,11 @@ jobs:
           apt-get update
           apt-get install -y curl unzip
 
+      - name: Fetch licensed 3D game assets
+        run: |
+          chmod +x scripts/download_external_assets.sh
+          ./scripts/download_external_assets.sh
+
       - name: Install Godot Web export templates
         run: |
           set -eux
