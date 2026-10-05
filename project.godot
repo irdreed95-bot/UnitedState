@@ -3,7 +3,8 @@ config/name="Corrupt State RP"
 config/icon="res://assets/corrupt_state_icon.svg"
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.5", "GL Compatibility")
-boot_splash/bg_color=Color(0.02,0.02,0.025,1)
+boot_splash/bg_color=Color(0.03,0.05,0.08,1)
+boot_splash/show_image=false
 
 [display]
 window/size/viewport_width=1280
@@ -15,6 +16,8 @@ window/stretch/mode="canvas_items"
 [rendering]
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+renderer/rendering_method.mobile.driver="opengl3"
+environment/defaults/default_clear_color=Color(0.03,0.05,0.08,1)
 textures/default_filters/use_nearest_mipmap_filter=false
 
 [input]
