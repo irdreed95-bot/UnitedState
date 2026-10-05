@@ -1,0 +1,6 @@
+{
+  "name": "Unity License Workspace",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {},
+  "postCreateCommand": "bash scripts/codespace-unity-personal-license.sh --install-only"
+}
