@@ -1,0 +1,42 @@
+name: Build Unity Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Unity 6 Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download verified 3D assets
+        working-directory: Unity
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq curl ca-certificates
+          chmod +x scripts/download_assets.sh
+          scripts/download_assets.sh
+      - name: Build Unity Android
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: Unity
+          unityVersion: 6000.0.63f1
+          targetPlatform: Android
+          buildMethod: CorruptStateRP.Editor.BuildProject.BuildAndroid
+          versioning: None
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CorruptStateRP-Unity-Android
+          path: Unity/Builds/Android/CorruptStateRP.apk
+          if-no-files-found: error
