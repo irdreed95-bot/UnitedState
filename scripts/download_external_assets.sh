@@ -9,12 +9,12 @@ download() {
   local out="$2"
   echo "Downloading $(basename "$out")"
   if command -v curl >/dev/null 2>&1; then
-    curl -fsSL --retry 3 --retry-delay 2 "$url" -o "$out"
+    curl -fL --retry 3 --retry-delay 2 --connect-timeout 20 --max-time 180 "$url" -o "$out"
   elif command -v wget >/dev/null 2>&1; then
-    wget -q --tries=3 -O "$out" "$url"
+    wget -q --tries=3 --timeout=20 -O "$out" "$url"
   else
-    echo "ERROR: neither curl nor wget is available in the Android build image." >&2
-    exit 127
+    echo "ERROR: curl or wget is required to download licensed game assets." >&2
+    exit 1
   fi
   test -s "$out"
 }
