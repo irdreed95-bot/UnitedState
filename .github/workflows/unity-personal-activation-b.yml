@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   activation:
-    name: Generate Unity Personal ALF
+    name: Generate Unity Personal License
     runs-on: ubuntu-24.04
 
     steps:
@@ -23,7 +23,10 @@ jobs:
 
           docker pull unityci/editor:ubuntu-6000.0.63f1-base-3
 
-          docker run --rm             -v "${GITHUB_WORKSPACE}/unity-license:/license"             unityci/editor:ubuntu-6000.0.63f1-base-3             bash -lc '
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}/unity-license:/license" \
+            unityci/editor:ubuntu-6000.0.63f1-base-3 \
+            bash -lc '
               set -e
               cd /license
               unity-editor -batchmode -nographics -createManualActivationFile -quit -logFile /license/create-activation.log
@@ -34,8 +37,44 @@ jobs:
           test -s "${ALF_FILE}"
 
           echo "Unity ALF generated successfully: $(basename "${ALF_FILE}")"
-
           rm -f "${GITHUB_WORKSPACE}/unity-license/create-activation.log"
+
+      - name: Activate Unity Personal license
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_TOTP_KEY: ${{ secrets.UNITY_TOTP_KEY }}
+        run: |
+          set -euo pipefail
+
+          test -n "${UNITY_EMAIL}" || { echo "::error::UNITY_EMAIL secret is missing"; exit 1; }
+          test -n "${UNITY_PASSWORD}" || { echo "::error::UNITY_PASSWORD secret is missing"; exit 1; }
+
+          npm install --global unity-license-activate
+
+          ALF_FILE="$(find "${GITHUB_WORKSPACE}/unity-license" -maxdepth 1 -type f -name "Unity_v*.alf" -print -quit)"
+          test -n "${ALF_FILE}" && test -s "${ALF_FILE}"
+
+          if [ -n "${UNITY_TOTP_KEY:-}" ]; then
+            unity-license-activate "${UNITY_EMAIL}" "${UNITY_PASSWORD}" "${ALF_FILE}" --authenticator-key "${UNITY_TOTP_KEY}"
+          else
+            unity-license-activate "${UNITY_EMAIL}" "${UNITY_PASSWORD}" "${ALF_FILE}"
+          fi
+
+          ULF_FILE="$(find "${GITHUB_WORKSPACE}" -type f -name "Unity_v*.ulf" -print -quit)"
+          test -n "${ULF_FILE}" || { echo "::error::No ULF file was generated"; exit 1; }
+          test -s "${ULF_FILE}"
+
+          cp "${ULF_FILE}" "${GITHUB_WORKSPACE}/unity-license/Unity_Personal.ulf"
+          echo "Unity Personal ULF generated successfully."
+
+      - name: Upload Unity Personal ULF
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unity-Personal-ULF
+          path: unity-license/Unity_Personal.ulf
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Upload Unity ALF
         uses: actions/upload-artifact@v4
