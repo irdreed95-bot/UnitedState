@@ -51,6 +51,9 @@ jobs:
           test -s build/web/index.html
           find build/web -maxdepth 2 -type f -printf '%p %s bytes\n'
 
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
