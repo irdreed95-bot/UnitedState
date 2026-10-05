@@ -2,7 +2,7 @@
 set -euo pipefail
 
 BASE="https://raw.githubusercontent.com"
-mkdir -p assets/external/city assets/external/vehicles assets/external/character
+mkdir -p assets/external/city assets/external/vehicles assets/external/character assets/external/roads
 
 download() {
   local url="$1"
@@ -26,6 +26,7 @@ download "$BASE/Hidencod/tge-assets/main/packs/car-kit/sedan.glb" assets/externa
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/suv.glb" assets/external/vehicles/suv.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/taxi.glb" assets/external/vehicles/taxi.glb
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/police.glb" assets/external/vehicles/police.glb
+download "$BASE/Hidencod/tge-assets/main/packs/city-kit-roads/road-straight.glb" assets/external/roads/road-straight.glb
 download "$BASE/programasweights/avatar/main/public/assets/character.glb" assets/external/character/citizen.glb
 
 cat > assets/external/ASSET_SOURCES.txt <<'EOF'
