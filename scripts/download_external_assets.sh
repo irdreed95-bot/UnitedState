@@ -38,7 +38,7 @@ download "$BASE/programasweights/avatar/main/public/assets/character.glb" assets
 
 # Noto Sans Arabic is distributed under the SIL Open Font License and provides
 # reliable Arabic shaping for the Web and Android HUD.
-download "https://github.com/notofonts/noto-fonts/raw/main/hinted/ttf/NotoSansArabic/NotoSansArabic-Regular.ttf" assets/fonts/NotoSansArabic-Regular.ttf
+download "https://raw.githubusercontent.com/notofonts/noto-fonts/main/unhinted/ttf/NotoSansArabic/NotoSansArabic-Regular.ttf" assets/fonts/NotoSansArabic-Regular.ttf
 
 cat > assets/external/ASSET_SOURCES.txt <<'EOF'
 Corrupt State RP external asset manifest
