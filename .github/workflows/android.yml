@@ -65,19 +65,6 @@ jobs:
           apt-get install -y -qq curl ca-certificates
           command -v curl
           curl --version
-      - name: Install asset download tools
-        run: |
-          set -eux
-          apt-get update -qq
-          apt-get install -y -qq curl ca-certificates
-          command -v curl
-
-      - name: Install asset download tools
-        run: |
-          apt-get update -qq
-          apt-get install -y -qq curl ca-certificates
-          command -v curl
-          curl --version | head -1
       - name: Fetch licensed 3D game assets
         run: |
           chmod +x scripts/download_external_assets.sh
@@ -122,11 +109,6 @@ jobs:
           "$ZIPALIGN" -c -P 16 -v 4 "build/android/${EXPORT_NAME}.apk"
           "$APK_SIGNER" verify --verbose "build/android/${EXPORT_NAME}.apk"
           echo "APK structure, signature, and 16KB ZIP alignment: PASS"
-      - name: Verify curl for direct upload
-        run: |
-          command -v curl
-          curl --version
-
       - name: Publish direct APK download
         run: |
           set -e
