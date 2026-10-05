@@ -208,32 +208,32 @@ func _add_landmark_sign(parent: Node3D, title: String) -> void:
 
 func _build_city_life() -> void:
 	for i in range(80):
-	var x := rng.randf_range(-285.0, 285.0)
-	var z := rng.randf_range(-285.0, 285.0)
-	if abs(x) < 125.0 and abs(z) < 125.0:
-		continue
-	if abs(fmod(x, ROAD_SPACING)) < 8.0 or abs(fmod(z, ROAD_SPACING)) < 8.0:
-		continue
-	_add_procedural_tree(Vector3(x, 0, z), rng.randf_range(0.8, 1.3))
+		var x := rng.randf_range(-285.0, 285.0)
+		var z := rng.randf_range(-285.0, 285.0)
+		if abs(x) < 125.0 and abs(z) < 125.0:
+			continue
+		if abs(fmod(x, ROAD_SPACING)) < 8.0 or abs(fmod(z, ROAD_SPACING)) < 8.0:
+			continue
+		_add_procedural_tree(Vector3(x, 0, z), rng.randf_range(0.8, 1.3))
 
-# Park clusters around the city.
-for p in [Vector3(-210,0,-80), Vector3(210,0,80), Vector3(-205,0,120), Vector3(205,0,-120)]:
-	for j in range(9):
-		var q := p + Vector3(rng.randf_range(-22,22),0,rng.randf_range(-18,18))
-		_add_procedural_tree(q, rng.randf_range(0.8, 1.15))
+	# Park clusters around the city.
+	for p in [Vector3(-210,0,-80), Vector3(210,0,80), Vector3(-205,0,120), Vector3(205,0,-120)]:
+		for j in range(9):
+			var q := p + Vector3(rng.randf_range(-22,22),0,rng.randf_range(-18,18))
+			_add_procedural_tree(q, rng.randf_range(0.8, 1.15))
 
-# Parked vehicles make the streets read as inhabited even before AI traffic moves.
-var cars := [
-	"res://assets/external/vehicles/sedan.glb",
-	"res://assets/external/vehicles/suv.glb",
-	"res://assets/external/vehicles/taxi.glb",
-		]
-for i in range(34):
-	var p := Vector3(rng.randf_range(-250,250), 0.2, rng.randf_range(-250,250))
-	if abs(fmod(p.x, ROAD_SPACING)) > 10.0 and abs(fmod(p.z, ROAD_SPACING)) > 10.0:
-		continue
-	var path := cars[rng.randi_range(0,cars.size()-1)]
-	_add_asset(path, p, Vector3.ONE * 1.0, "ParkedCar")
+	# Parked vehicles make the streets read as inhabited even before AI traffic moves.
+	var cars := [
+		"res://assets/external/vehicles/sedan.glb",
+		"res://assets/external/vehicles/suv.glb",
+		"res://assets/external/vehicles/taxi.glb"
+	]
+	for i in range(34):
+		var p := Vector3(rng.randf_range(-250,250), 0.2, rng.randf_range(-250,250))
+		if abs(fmod(p.x, ROAD_SPACING)) > 10.0 and abs(fmod(p.z, ROAD_SPACING)) > 10.0:
+			continue
+		var path := cars[rng.randi_range(0,cars.size()-1)]
+		_add_asset(path, p, Vector3.ONE, "ParkedCar")
 
 func _add_procedural_tree(p: Vector3, scale_value: float) -> void:
 	var root := Node3D.new()
