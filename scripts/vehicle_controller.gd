@@ -5,6 +5,10 @@ extends VehicleBody3D
 @export var brake_power: float = 28.0
 @export var steering_limit: float = 0.48
 var player_controlled: bool = false
+var engine_on: bool = false
+var headlights_on: bool = false
+var headlight_left: OmniLight3D
+var headlight_right: OmniLight3D
 
 func _ready() -> void:
 	mass = 1100.0
@@ -18,7 +22,7 @@ func set_controlled(value: bool) -> void:
 		brake = brake_power
 
 func drive(input: Vector2, delta: float) -> void:
-	if not player_controlled:
+	if not player_controlled or not engine_on:
 		return
 	var throttle: float = clampf(-input.y, -1.0, 1.0)
 	var steer: float = clampf(input.x, -1.0, 1.0)
@@ -29,35 +33,81 @@ func drive(input: Vector2, delta: float) -> void:
 		if child is VehicleWheel3D and child.use_as_steering:
 			child.steering = move_toward(child.steering, steering_target, delta * 3.5)
 
+func toggle_engine() -> void:
+	engine_on = not engine_on
+	if not engine_on:
+		engine_force = 0.0
+		brake = brake_power
+
+func toggle_lights() -> void:
+	headlights_on = not headlights_on
+	if headlight_left:
+		headlight_left.visible = headlights_on
+	if headlight_right:
+		headlight_right.visible = headlights_on
+
 func _build_chassis() -> void:
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(1.9, 0.55, 4.0)
+	shape.size = Vector3(1.9, 0.62, 4.0)
 	collision.shape = shape
 	collision.position.y = 0.62
 	add_child(collision)
+
 	var body := MeshInstance3D.new()
 	var mesh := BoxMesh.new()
-	mesh.size = Vector3(1.9, 0.55, 4.0)
+	mesh.size = Vector3(1.9, 0.58, 4.0)
 	body.mesh = mesh
 	body.position.y = 0.62
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color("#18212b")
-	mat.metallic = 0.55
-	mat.roughness = 0.28
+	mat.albedo_color = Color("#8c2632")
+	mat.metallic = 0.58
+	mat.roughness = 0.25
 	body.material_override = mat
 	add_child(body)
-	var glass := MeshInstance3D.new()
-	var glass_mesh := BoxMesh.new()
-	glass_mesh.size = Vector3(1.35, 0.32, 1.45)
-	glass.mesh = glass_mesh
-	glass.position = Vector3(0, 1.02, -0.05)
-	var glass_mat := StandardMaterial3D.new()
-	glass_mat.albedo_color = Color("#243b4b")
-	glass_mat.metallic = 0.2
-	glass_mat.roughness = 0.12
-	glass.material_override = glass_mat
-	add_child(glass)
+
+	var hood := MeshInstance3D.new()
+	var hood_mesh := BoxMesh.new()
+	hood_mesh.size = Vector3(1.72, 0.18, 1.15)
+	hood.mesh = hood_mesh
+	hood.position = Vector3(0, 0.95, -1.18)
+	hood.material_override = mat
+	add_child(hood)
+
+	var cabin := MeshInstance3D.new()
+	var cabin_mesh := BoxMesh.new()
+	cabin_mesh.size = Vector3(1.45, 0.55, 1.72)
+	cabin.mesh = cabin_mesh
+	cabin.position = Vector3(0, 1.05, 0.25)
+	var cabin_mat := StandardMaterial3D.new()
+	cabin_mat.albedo_color = Color("#17252e")
+	cabin_mat.metallic = 0.25
+	cabin_mat.roughness = 0.12
+	cabin.material_override = cabin_mat
+	add_child(cabin)
+
+	var bumper := MeshInstance3D.new()
+	var bumper_mesh := BoxMesh.new()
+	bumper_mesh.size = Vector3(1.72, 0.18, 0.25)
+	bumper.mesh = bumper_mesh
+	bumper.position = Vector3(0, 0.43, -1.95)
+	var bumper_mat := StandardMaterial3D.new()
+	bumper_mat.albedo_color = Color("#11161c")
+	bumper.material_override = bumper_mat
+	add_child(bumper)
+
+	headlight_left = _add_light(Vector3(-0.58, 0.72, -2.02))
+	headlight_right = _add_light(Vector3(0.58, 0.72, -2.02))
+
+func _add_light(p: Vector3) -> OmniLight3D:
+	var light := OmniLight3D.new()
+	light.light_color = Color("#fff0c5")
+	light.light_energy = 1.8
+	light.omni_range = 8.0
+	light.position = p
+	light.visible = false
+	add_child(light)
+	return light
 
 func _build_wheels() -> void:
 	var positions: Array[Vector3] = [Vector3(-0.92, 0.45, -1.35), Vector3(0.92, 0.45, -1.35), Vector3(-0.92, 0.45, 1.35), Vector3(0.92, 0.45, 1.35)]
