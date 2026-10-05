@@ -15,18 +15,16 @@ func _build_environment() -> void:
 	var env_node := WorldEnvironment.new()
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color("#18283a")
 	env.background_color = Color("#08111d")
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("#9fb7d0")
 	env.ambient_light_energy = 0.72
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.glow_enabled = true
-	env.glow_intensity = 0.75
-	env.glow_bloom = 0.12
-	env.ssao_enabled = true
-	env.ssao_radius = 2.5
-	env.ssao_intensity = 1.5
+	env.glow_enabled = false
+	env.ssao_enabled = false
 	env.sdfgi_enabled = false
+	env.background_energy_multiplier = 0.85
 	env_node.environment = env
 	add_child(env_node)
 	var sun := DirectionalLight3D.new()
