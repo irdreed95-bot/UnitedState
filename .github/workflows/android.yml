@@ -2,8 +2,7 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
+  # Godot build retained as rollback/manual validation only; Unity is now the active Android pipeline.
 
 permissions:
   contents: write
