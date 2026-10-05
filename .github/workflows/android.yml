@@ -64,7 +64,7 @@ jobs:
           ./scripts/download_external_assets.sh
       - name: Validate project
         run: |
-          godot --headless --path . --check-only --rendering-method gl_compatibility
+          set -eux
           godot --headless --path . --editor --quit --rendering-method gl_compatibility
       - name: Prepare Android debug keystore
         run: |
