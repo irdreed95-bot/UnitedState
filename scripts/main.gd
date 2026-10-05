@@ -38,7 +38,6 @@ var in_vehicle := false
 var inventory := {"ماء": 3, "طعام": 2, "إسعاف": 1, "ذخيرة": 20, "هوية": 1}
 
 func _ready() -> void:
-	get_viewport().set_embedding_subwindows(false)
 	_load_game()
 	world = RPWorldBuilder.new()
 	world.name = "World"
