@@ -18,10 +18,10 @@ func _build_environment() -> void:
 	env.background_mode = Environment.BG_SKY
 	var sky := Sky.new()
 	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color("#07111f")
-	sky_mat.sky_horizon_color = Color("#5e7184")
-	sky_mat.ground_bottom_color = Color("#0a1118")
-	sky_mat.ground_horizon_color = Color("#334250")
+	sky_mat.sky_top_color = Color("#13283d")
+	sky_mat.sky_horizon_color = Color("#91a8b8")
+	sky_mat.ground_bottom_color = Color("#18222b")
+	sky_mat.ground_horizon_color = Color("#536575")
 	sky_mat.sun_angle_max = 18.0
 	sky.material = sky_mat
 	env.sky = sky
@@ -32,13 +32,13 @@ func _build_environment() -> void:
 	env.glow_enabled = false
 	env.ssao_enabled = false
 	env.sdfgi_enabled = false
-	env.background_energy_multiplier = 0.9
+	env.background_energy_multiplier = 1.15
 	env_node.environment = env
 	add_child(env_node)
 
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48, -32, 0)
-	sun.light_energy = 1.15
+	sun.light_energy = 1.35
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 220.0
 	add_child(sun)
