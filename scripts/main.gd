@@ -128,6 +128,13 @@ func _build_hud() -> void:
 	add_child(hud)
 	var root := Control.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var ui_theme := Theme.new()
+	var arabic_font_path := "res://assets/fonts/NotoSansArabic-Regular.ttf"
+	if ResourceLoader.exists(arabic_font_path):
+		var arabic_font := load(arabic_font_path) as Font
+		if arabic_font:
+			ui_theme.default_font = arabic_font
+	root.theme = ui_theme
 	hud.add_child(root)
 
 	var top := Panel.new()
@@ -141,12 +148,14 @@ func _build_hud() -> void:
 	stats_label.add_theme_font_size_override("font_size", 17)
 	top.add_child(stats_label)
 	mission_label = Label.new()
+	mission_label.layout_direction = Control.LAYOUT_DIRECTION_RTL
 	mission_label.position = Vector2(18, 108)
 	mission_label.size = Vector2(384, 28)
 	mission_label.add_theme_font_size_override("font_size", 14)
 	top.add_child(mission_label)
 
 	notice_label = Label.new()
+	notice_label.layout_direction = Control.LAYOUT_DIRECTION_RTL
 	notice_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	notice_label.position = Vector2(-360, 22)
 	notice_label.size = Vector2(720, 48)
@@ -394,4 +403,8 @@ func _show_notice(message: String) -> void:
 	if notice_label:
 		notice_label.text = message
 		var timer := get_tree().create_timer(3.0)
-		timer.timeout.connect(func(): if notice_label: notice_label.text = "")
+		timer.timeout.connect(_clear_notice)
+
+func _clear_notice() -> void:
+	if notice_label:
+		notice_label.text = ""
