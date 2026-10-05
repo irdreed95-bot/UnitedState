@@ -7,7 +7,6 @@ extends CharacterBody3D
 @export var gravity := 22.0
 
 var move_input := Vector2.ZERO
-var external_camera: Camera3D
 var is_running := false
 var animation_player: AnimationPlayer
 var animation_tree: AnimationTree
@@ -47,15 +46,17 @@ func _physics_process(delta: float) -> void:
 
 func _build_humanoid() -> void:
 	body_visual = Node3D.new()
-	body_visual.name = "HumanoidVisual"
+	body_visual.name = "CitizenCharacter"
 	add_child(body_visual)
-	_add_capsule("Torso", Vector3(0, 1.02, 0), 0.95, 0.34, Color("#26384a"))
-	_add_sphere("Head", Vector3(0, 1.85, 0), 0.28, Color("#c98f68"))
-	_add_box("Pelvis", Vector3(0, 0.62, 0), Vector3(0.58, 0.35, 0.34), Color("#18202a"))
-	_add_box("LeftArm", Vector3(-0.45, 1.05, 0), Vector3(0.18, 0.75, 0.18), Color("#26384a"))
-	_add_box("RightArm", Vector3(0.45, 1.05, 0), Vector3(0.18, 0.75, 0.18), Color("#26384a"))
-	_add_box("LeftLeg", Vector3(-0.18, 0.28, 0), Vector3(0.20, 0.62, 0.22), Color("#101820"))
-	_add_box("RightLeg", Vector3(0.18, 0.28, 0), Vector3(0.20, 0.62, 0.22), Color("#101820"))
+	_add_capsule("Coat", Vector3(0, 1.02, 0), 0.9, 0.34, Color("#26394c"))
+	_add_sphere("Head", Vector3(0, 1.82, 0), 0.28, Color("#c98f68"))
+	_add_box("Pelvis", Vector3(0, 0.60, 0), Vector3(0.60, 0.34, 0.38), Color("#151c25"))
+	_add_box("LeftArm", Vector3(-0.43, 1.02, 0), Vector3(0.17, 0.72, 0.18), Color("#26394c"))
+	_add_box("RightArm", Vector3(0.43, 1.02, 0), Vector3(0.17, 0.72, 0.18), Color("#26394c"))
+	_add_box("LeftLeg", Vector3(-0.18, 0.27, 0), Vector3(0.21, 0.62, 0.24), Color("#101722"))
+	_add_box("RightLeg", Vector3(0.18, 0.27, 0), Vector3(0.21, 0.62, 0.24), Color("#101722"))
+	_add_box("LeftShoe", Vector3(-0.18, -0.08, -0.08), Vector3(0.24, 0.16, 0.42), Color("#080b0f"))
+	_add_box("RightShoe", Vector3(0.18, -0.08, -0.08), Vector3(0.24, 0.16, 0.42), Color("#080b0f"))
 
 func _add_box(n: String, p: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
 	var m := MeshInstance3D.new()
@@ -65,7 +66,7 @@ func _add_box(n: String, p: Vector3, size: Vector3, color: Color) -> MeshInstanc
 	m.mesh = mesh
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
-	mat.roughness = 0.68
+	mat.roughness = 0.58
 	m.material_override = mat
 	m.position = p
 	body_visual.add_child(m)
@@ -80,7 +81,7 @@ func _add_capsule(n: String, p: Vector3, height: float, radius: float, color: Co
 	m.mesh = mesh
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
-	mat.roughness = 0.7
+	mat.roughness = 0.62
 	m.material_override = mat
 	m.position = p
 	body_visual.add_child(m)
@@ -95,7 +96,7 @@ func _add_sphere(n: String, p: Vector3, radius: float, color: Color) -> MeshInst
 	m.mesh = mesh
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
-	mat.roughness = 0.65
+	mat.roughness = 0.58
 	m.material_override = mat
 	m.position = p
 	body_visual.add_child(m)
@@ -103,7 +104,6 @@ func _add_sphere(n: String, p: Vector3, radius: float, color: Color) -> MeshInst
 
 func _build_animation_system() -> void:
 	animation_player = AnimationPlayer.new()
-	animation_player.name = "AnimationPlayer"
 	add_child(animation_player)
 	var library := AnimationLibrary.new()
 	var idle := Animation.new()
@@ -116,7 +116,6 @@ func _build_animation_system() -> void:
 	library.add_animation("walk", walk)
 	animation_player.add_animation_library("", library)
 	animation_tree = AnimationTree.new()
-	animation_tree.name = "AnimationTree"
 	animation_tree.anim_player = NodePath("../AnimationPlayer")
 	var state_machine := AnimationNodeStateMachine.new()
 	var idle_node := AnimationNodeAnimation.new()
@@ -136,7 +135,4 @@ func _update_animation(amount: float) -> void:
 		return
 	var playback = animation_tree.get("parameters/playback")
 	if playback:
-		if amount > 0.1:
-			playback.travel("Walk")
-		else:
-			playback.travel("Idle")
+		playback.travel("Walk" if amount > 0.1 else "Idle")
