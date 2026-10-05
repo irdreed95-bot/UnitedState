@@ -48,6 +48,13 @@ func _spawn_car() -> void:
 	car.name = "TrafficVehicle"
 	car.mass = 950.0
 	car.position = lane
+	var half := 270.0
+	var direction := Vector3.ZERO
+	if abs(lane.x) < half:
+		direction = Vector3.FORWARD if lane.z > 0.0 else Vector3.BACK
+	else:
+		direction = Vector3.LEFT if lane.x > 0.0 else Vector3.RIGHT
+	car.rotation.y = atan2(-direction.x, -direction.z)
 	var visual_path := vehicle_assets[randi() % vehicle_assets.size()]
 	var scene := _load_scene(visual_path)
 	if scene:
