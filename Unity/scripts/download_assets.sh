@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+BASE="https://raw.githubusercontent.com/Hidencod/tge-assets/main"
+ROOT="Assets/Resources/External"
+mkdir -p "$ROOT/city" "$ROOT/vehicles" "$ROOT/character"
+fetch(){ curl -fL --retry 3 --retry-delay 2 --connect-timeout 20 --max-time 180 "$1" -o "$2"; test -s "$2"; }
+fetch "$BASE/packs/city-kit-commercial/building-a.glb" "$ROOT/city/commercial_a.glb"
+fetch "$BASE/packs/city-kit-commercial/building-b.glb" "$ROOT/city/commercial_b.glb"
+fetch "$BASE/packs/city-kit-commercial/building-skyscraper-a.glb" "$ROOT/city/skyscraper_a.glb"
+fetch "$BASE/packs/city-kit-commercial/building-skyscraper-b.glb" "$ROOT/city/skyscraper_b.glb"
+fetch "$BASE/packs/city-kit-commercial/building-skyscraper-c.glb" "$ROOT/city/skyscraper_c.glb"
+fetch "$BASE/packs/city-kit-suburban/building-type-a.glb" "$ROOT/city/suburban_a.glb"
+fetch "$BASE/packs/city-kit-suburban/building-type-b.glb" "$ROOT/city/suburban_b.glb"
+fetch "$BASE/packs/city-kit-suburban/building-type-c.glb" "$ROOT/city/suburban_c.glb"
+fetch "$BASE/packs/car-kit/sedan.glb" "$ROOT/vehicles/sedan.glb"
+fetch "$BASE/packs/car-kit/suv.glb" "$ROOT/vehicles/suv.glb"
+fetch "$BASE/packs/car-kit/taxi.glb" "$ROOT/vehicles/taxi.glb"
+fetch "$BASE/packs/car-kit/police.glb" "$ROOT/vehicles/police.glb"
+fetch "https://raw.githubusercontent.com/programasweights/avatar/main/public/assets/character.glb" "$ROOT/character/citizen.glb"
+echo "Unity migration assets downloaded."
