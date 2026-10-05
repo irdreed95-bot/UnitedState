@@ -24,6 +24,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Web build dependencies
+        run: |
+          apt-get update
+          apt-get install -y curl unzip
+
       - name: Install Godot Web export templates
         run: |
           mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
