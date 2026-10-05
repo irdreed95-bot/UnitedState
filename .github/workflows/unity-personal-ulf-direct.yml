@@ -1,0 +1,55 @@
+name: Unity Personal ULF - Direct Activation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  activate:
+    name: Activate Unity Personal and export ULF
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Activate Unity Personal
+        uses: buildalon/activate-unity-license@v2
+        with:
+          license: personal
+          username: ${{ secrets.UNITY_EMAIL }}
+          password: ${{ secrets.UNITY_PASSWORD }}
+          license-version: 6.x
+
+      - name: Locate generated Unity license
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Searching for Unity license files..."
+          find "$HOME" /root/.local/share/unity3d /root/.config/unity3d -type f \( -name "*.ulf" -o -name "Unity_lic.ulf" \) -print 2>/dev/null | sort -u > /tmp/unity-license-files.txt || true
+          cat /tmp/unity-license-files.txt || true
+
+          LICENSE_FILE=""
+          while IFS= read -r f; do
+            if [ -s "$f" ]; then
+              LICENSE_FILE="$f"
+              break
+            fi
+          done < /tmp/unity-license-files.txt
+
+          if [ -z "$LICENSE_FILE" ]; then
+            echo "No .ulf license file was produced by the licensing client."
+            exit 1
+          fi
+
+          mkdir -p unity-license
+          cp "$LICENSE_FILE" unity-license/Unity_lic.ulf
+          test -s unity-license/Unity_lic.ulf
+          echo "ULF exported successfully."
+
+      - name: Upload ULF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unity-Personal-ULF
+          path: unity-license/Unity_lic.ulf
+          retention-days: 7
+          if-no-files-found: error
