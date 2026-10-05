@@ -9,9 +9,6 @@ var vehicle_assets := [
 	"res://assets/external/vehicles/sedan.glb",
 	"res://assets/external/vehicles/suv.glb",
 	"res://assets/external/vehicles/taxi.glb",
-	"res://assets/external/vehicles/sedan_sports.glb",
-	"res://assets/external/vehicles/van.glb",
-	"res://assets/external/vehicles/truck.glb",
 	"res://assets/external/vehicles/police.glb",
 ]
 
