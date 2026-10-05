@@ -8,7 +8,14 @@ download() {
   local url="$1"
   local out="$2"
   echo "Downloading $(basename "$out")"
-  curl -fsSL --retry 3 --retry-delay 2 "$url" -o "$out"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL --retry 3 --retry-delay 2 "$url" -o "$out"
+  else
+    python3 - "$url" "$out" <<'PY'
+import sys, urllib.request
+urllib.request.urlretrieve(sys.argv[1], sys.argv[2])
+PY
+  fi
   test -s "$out"
 }
 
