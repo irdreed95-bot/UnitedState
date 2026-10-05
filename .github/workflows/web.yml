@@ -1,19 +1,20 @@
 name: Build Web Preview
-
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
-
 permissions:
   contents: read
   pages: write
   id-token: write
-
 jobs:
-  test:
+  build-web:
     runs-on: ubuntu-24.04
+    container:
+      image: barichello/godot-ci:4.5.2
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
