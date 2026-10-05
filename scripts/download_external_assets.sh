@@ -2,7 +2,7 @@
 set -euo pipefail
 
 BASE="https://raw.githubusercontent.com"
-mkdir -p assets/external/city assets/external/vehicles assets/external/character assets/external/roads
+mkdir -p assets/external/city assets/external/vehicles assets/external/character assets/external/roads assets/fonts
 
 download() {
   local url="$1"
@@ -35,6 +35,10 @@ download "$BASE/Hidencod/tge-assets/main/packs/car-kit/taxi.glb" assets/external
 download "$BASE/Hidencod/tge-assets/main/packs/car-kit/police.glb" assets/external/vehicles/police.glb
 download "$BASE/Hidencod/tge-assets/main/packs/city-kit-roads/road-straight.glb" assets/external/roads/road-straight.glb
 download "$BASE/programasweights/avatar/main/public/assets/character.glb" assets/external/character/citizen.glb
+
+# Noto Sans Arabic is distributed under the SIL Open Font License and provides
+# reliable Arabic shaping for the Web and Android HUD.
+download "https://github.com/notofonts/noto-fonts/raw/main/hinted/ttf/NotoSansArabic/NotoSansArabic-Regular.ttf" assets/fonts/NotoSansArabic-Regular.ttf
 
 cat > assets/external/ASSET_SOURCES.txt <<'EOF'
 Corrupt State RP external asset manifest
