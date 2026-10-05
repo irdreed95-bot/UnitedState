@@ -1,0 +1,81 @@
+name: Unity Personal Activation - Plan B
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  activation:
+    name: Generate Unity Personal ULF
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate ALF and request ULF
+        env:
+          UNITY_USERNAME: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_KEY: ${{ secrets.UNITY_KEY }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p "${GITHUB_WORKSPACE}/unity-license"
+
+          # Unity 6 CI image. This creates the machine-specific .alf file
+          # without requiring an already-activated Unity license.
+          docker pull unityci/editor:ubuntu-6000.0.63f1-base-3
+
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}/unity-license:/license" \
+            unityci/editor:ubuntu-6000.0.63f1-base-3 \
+            bash -lc '
+              set -e
+              cd /license
+              unity-editor -batchmode -nographics -createManualActivationFile -quit -logFile /license/create-activation.log
+              find /license -maxdepth 2 -type f -name "*.alf" -print -exec cp {} /license/Unity_Activation.alf \;
+            '
+
+          test -s "${GITHUB_WORKSPACE}/unity-license/Unity_Activation.alf"
+
+          # This community utility automates the Unity license portal.
+          # It is only used for this activation attempt; it is not part of
+          # the game build and no credentials are written to the repository.
+          npm install --global unity-activate
+
+          if [ -n "${UNITY_KEY:-}" ]; then
+            unity-activate \
+              --username "${UNITY_USERNAME}" \
+              --password "${UNITY_PASSWORD}" \
+              --key "${UNITY_KEY}" \
+              --out "${GITHUB_WORKSPACE}/unity-license" \
+              "${GITHUB_WORKSPACE}/unity-license/Unity_Activation.alf"
+          else
+            unity-activate \
+              --username "${UNITY_USERNAME}" \
+              --password "${UNITY_PASSWORD}" \
+              --out "${GITHUB_WORKSPACE}/unity-license" \
+              "${GITHUB_WORKSPACE}/unity-license/Unity_Activation.alf"
+          fi
+
+          ULF_FILE="$(find "${GITHUB_WORKSPACE}/unity-license" -maxdepth 1 -type f -name "*.ulf" -print -quit)"
+          test -n "${ULF_FILE}"
+          test -s "${ULF_FILE}"
+
+          echo "Unity Personal ULF generated successfully."
+          echo "ULF filename: $(basename "${ULF_FILE}")"
+
+          # Never print the license contents or credentials.
+          rm -f "${GITHUB_WORKSPACE}/unity-license/Unity_Activation.alf"
+          rm -f "${GITHUB_WORKSPACE}/unity-license/create-activation.log"
+
+      - name: Upload ULF as short-lived artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unity-Personal-License-ULF
+          path: unity-license/*.ulf
+          retention-days: 1
+          if-no-files-found: error
