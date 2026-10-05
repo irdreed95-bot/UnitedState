@@ -65,6 +65,13 @@ jobs:
           apt-get install -y -qq curl ca-certificates
           command -v curl
           curl --version
+      - name: Install asset download tools
+        run: |
+          set -eux
+          apt-get update -qq
+          apt-get install -y -qq curl ca-certificates
+          command -v curl
+
       - name: Fetch licensed 3D game assets
         run: |
           chmod +x scripts/download_external_assets.sh
