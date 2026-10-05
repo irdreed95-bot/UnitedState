@@ -58,7 +58,7 @@ func _build_grid_city() -> void:
 	add_child(grid)
 	for x in range(-30, 31):
 		for z in range(-30, 31):
-			var road := abs(x) <= 1 or abs(z) <= 1 or abs(x) % 4 == 0 or abs(z) % 4 == 0
+			var road: bool = abs(x) <= 1 or abs(z) <= 1 or abs(x) % 4 == 0 or abs(z) % 4 == 0
 			if road:
 				grid.set_cell_item(Vector3i(x, 0, z), 0)
 			else:
