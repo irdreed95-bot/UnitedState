@@ -1,14 +1,27 @@
 # Corrupt State RP — Unity migration
 
-The existing Godot project remains as a rollback/reference copy. This Unity project ports the working foundation instead of starting from zero.
+The Godot project is retained as a rollback/reference copy. The active game runtime is being ported to Unity 6.
 
-Ported foundation:
+## Ported now
 - 600x600 city foundation and road grid.
-- Existing real 3D building/vehicle/citizen asset paths.
+- Real 3D building/vehicle/citizen asset bridge using the same verified GLB sources.
 - Police, hospital, bank, government, court, prison, garage, market, gang area and port landmarks.
 - Trees, parks, street lights and parked vehicles.
-- Third-person citizen controller and vehicle controller.
-- Traffic manager.
+- Third-person citizen controller.
+- Vehicle controller and traffic manager.
 - Arabic HUD and core money/bank/XP/health/hunger/thirst/wanted state.
+- Save-state foundation.
+- Jobs/factions foundation.
+- Touch-control foundation.
 
-Unity glTFast 6.14.1 is used for the existing GLB assets. Unity 6.0.63f1 supports Android builds; the build pipeline will remain APK-first.
+## Build
+Unity 6.0.63f1 is selected. Android APK is the only Unity target. Unity glTFast 6.14.1 is pinned for GLB support.
+
+The first Unity CI attempt successfully downloaded all verified 3D assets, then stopped before opening/building the Unity project because the repository has no Unity license secret configured. No APK is claimed yet.
+
+## Next
+- Complete mobile controls and UI.
+- Port the full interaction/job/faction/phone systems from Godot.
+- Add building interiors, vehicles/garages/maintenance and stronger NPC AI.
+- Add world streaming/LOD/occlusion and Android performance pass.
+- Configure Unity Personal license for CI, then run the APK build and fix compile/runtime errors found by the real Unity build.
