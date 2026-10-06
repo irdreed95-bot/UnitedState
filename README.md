@@ -50,3 +50,13 @@ Asset sources are evaluated individually before inclusion. Commercial game asset
 - Added commercial towers, residential districts (Rich/Poor/Gang), dealership vehicles and a first connected street network using the licensed road/building assets.
 - Repositioned the forest/mountain layer so the regions remain inside the playable 600×600 world bounds.
 - Updated the initial player/vehicle locations and landmark interaction coordinates to match the new city layout.
+
+## Batch 3 — Playable New Citizen Program
+- Replaced the old manual mission-advance button logic with a persistent PDF-aligned onboarding state machine.
+- Implemented real sequential interactions for identity, bank account/ATM, driving theory + practical, dealership purchase/registration, civilian job selection, government visits, lawful-play timer, city discovery, social interaction and final career-path selection.
+- Implemented the PDF rewards: identity reward, bank reward, 500 XP driving reward, 10% first-maintenance discount flag, 5,000$ legal-income target, government-visit rewards, lawful-citizen reward, city-map reward, social-citizen reward and the final 10,000$ completion package.
+- Added the final completion package state: مواطن الجمهورية, starter vehicle, 7-day rental-home timer and official-job unlock flag.
+- Added visible airport, public park and starter rental-home landmarks to support the onboarding route.
+- Added local persistence for every onboarding sub-step so progress does not reset between launches.
+- Added a dedicated scripts/new_citizen_program.gd state machine to keep progression logic separate from the world/HUD code.
+- The current implementation remains a local development prototype; authoritative online persistence, multiplayer replication and server-side anti-cheat are still planned for the later backend phase.
