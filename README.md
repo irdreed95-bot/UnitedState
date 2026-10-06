@@ -28,3 +28,7 @@ The active CI workflow is `.github/workflows/unity-android.yml`. Unity license c
 
 ## Development rule
 Before adding major systems or assets, review the current Unity project and the PDF requirements, preserve working code, and validate changes through the real Unity build before claiming an APK is ready.
+
+
+## Current build
+Unity 6 city foundation now includes a visible fallback citizen, expanded city streets, sidewalks, and street lighting.
