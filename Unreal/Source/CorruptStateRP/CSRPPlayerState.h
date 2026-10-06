@@ -27,5 +27,17 @@ public:
     UPROPERTY(Replicated, BlueprintReadOnly, Category="Citizen")
     bool bCitizenProgramCompleted = false;
 
+    UPROPERTY(Replicated, BlueprintReadOnly, Category="Citizen|Rewards")
+    bool bStarterVehicleUnlocked = false;
+
+    UPROPERTY(Replicated, BlueprintReadOnly, Category="Citizen|Rewards")
+    bool bRentalHomeUnlocked = false;
+
+    UPROPERTY(Replicated, BlueprintReadOnly, Category="Citizen|Rewards")
+    int64 RentalHomeExpiryUnix = 0;
+
+    UPROPERTY(Replicated, BlueprintReadOnly, Category="Citizen|Rewards")
+    bool bOfficialJobUnlocked = false;
+
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };
