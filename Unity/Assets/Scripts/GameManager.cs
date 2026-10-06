@@ -6,8 +6,10 @@ public sealed class GameManager:MonoBehaviour{
     PlayerController player;
     VehicleController vehicle;
     Camera mainCamera;
+    JobAndFactionSystem jobSystem;
     Text stats,mission;
     int money=2500,bank=10000,xp,level=1,wanted;
+    float salaryTimer;
     float health=100,hunger=100,thirst=100;
 
     readonly string[] missions={
@@ -28,6 +30,7 @@ public sealed class GameManager:MonoBehaviour{
         // the game must still render instead of ending on a black screen.
         BuildPlayer();
         BuildVehicle();
+        jobSystem=new GameObject("JobAndFactionSystem").AddComponent<JobAndFactionSystem>();
         BuildHUD();
         BuildWorldSafe();
         BuildTrafficSafe();
@@ -115,6 +118,8 @@ public sealed class GameManager:MonoBehaviour{
     }
 
     void Update(){
+        salaryTimer+=Time.deltaTime;
+        if(jobSystem!=null && jobSystem.Salary>0 && salaryTimer>=300f){ money+=jobSystem.CollectSalary(); salaryTimer=0f; }
         hunger=Mathf.Max(0,hunger-Time.deltaTime*.01f);
         thirst=Mathf.Max(0,thirst-Time.deltaTime*.018f);
         if(Input.GetKeyDown(KeyCode.F))ToggleVehicle();
@@ -168,7 +173,7 @@ public sealed class GameManager:MonoBehaviour{
 
     void HUD(){
         if(stats==null||mission==null)return;
-        stats.text=$"CORRUPT STATE RP\n$ {money} | بنك {bank} | LV {level} | XP {xp}\n❤️ {health:0}%  🍖 {hunger:0}%  💧 {thirst:0}%  ⭐ {wanted}";
+        stats.text=$"CORRUPT STATE RP\n$ {money} | بنك {bank} | LV {level} | XP {xp}\n❤️ {health:0}%  🍖 {hunger:0}%  💧 {thirst:0}%  ⭐ {wanted}\nالوظيفة: {(jobSystem!=null?jobSystem.CurrentJob:"عاطل")} | الفصيل: {(jobSystem!=null?jobSystem.CurrentFaction:"مدني")}";
         mission.text=$"المهمة: {missions[Mathf.Abs(xp)%missions.Length]}";
     }
 }}
