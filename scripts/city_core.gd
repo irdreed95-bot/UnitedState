@@ -49,29 +49,29 @@ func _build_service_block(world: Node3D) -> void:
     _add_vehicle_row(world, Vector3(-42, 0.5, 151), ["sedan.glb", "suv.glb", "taxi.glb"])
 
 func _build_citizen_landmarks(world: Node3D) -> void:
-	# PDF mission 8: airport, public park and a real rental-home marker.
-	var runway := MeshInstance3D.new()
-	var runway_mesh := BoxMesh.new()
-	runway_mesh.size = Vector3(55, 0.08, 180)
-	runway.mesh = runway_mesh
-	runway.position = Vector3(245, 0.02, 0)
-	runway.material_override = _mat(Color("#202328"), 0.92)
-	world.add_child(runway)
-	_building(world, "المطار", Vector3(245, 0, -82), "commercial_b.glb", 1.25)
-	_add_landmark_label(world, "المطار — بوابة الجمهورية", Vector3(245, 8, -82))
+    # PDF mission 8: airport, public park and a real rental-home marker.
+    var runway := MeshInstance3D.new()
+    var runway_mesh := BoxMesh.new()
+    runway_mesh.size = Vector3(55, 0.08, 180)
+    runway.mesh = runway_mesh
+    runway.position = Vector3(245, 0.02, 0)
+    runway.material_override = _mat(Color("#202328"), 0.92)
+    world.add_child(runway)
+    _building(world, "المطار", Vector3(245, 0, -82), "commercial_b.glb", 1.25)
+    _add_landmark_label(world, "المطار — بوابة الجمهورية", Vector3(245, 8, -82))
 
-	var park_ground := MeshInstance3D.new()
-	var park_mesh := BoxMesh.new()
-	park_mesh.size = Vector3(95, 0.06, 75)
-	park_ground.mesh = park_mesh
-	park_ground.position = Vector3(90, 0.02, 90)
-	park_ground.material_override = _mat(Color("#365b3b"), 0.9)
-	world.add_child(park_ground)
-	_building(world, "الحديقة العامة", Vector3(90, 0, 90), "suburban_c.glb", 0.55)
-	_add_landmark_label(world, "الحديقة العامة", Vector3(90, 4.5, 90))
+    var park_ground := MeshInstance3D.new()
+    var park_mesh := BoxMesh.new()
+    park_mesh.size = Vector3(95, 0.06, 75)
+    park_ground.mesh = park_mesh
+    park_ground.position = Vector3(90, 0.02, 90)
+    park_ground.material_override = _mat(Color("#365b3b"), 0.9)
+    world.add_child(park_ground)
+    _building(world, "الحديقة العامة", Vector3(90, 0, 90), "suburban_c.glb", 0.55)
+    _add_landmark_label(world, "الحديقة العامة", Vector3(90, 4.5, 90))
 
-	_building(world, "منزل الإيجار المبدئي", Vector3(205, 0, -55), "suburban_a.glb", 0.95)
-	_add_landmark_label(world, "منزل المواطن — إيجار 7 أيام", Vector3(205, 5.0, -55))
+    _building(world, "منزل الإيجار المبدئي", Vector3(205, 0, -55), "suburban_a.glb", 0.95)
+    _add_landmark_label(world, "منزل المواطن — إيجار 7 أيام", Vector3(205, 5.0, -55))
 
 func _build_commercial_block(world: Node3D) -> void:
     for i in range(6):
