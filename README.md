@@ -1,62 +1,30 @@
-# Corrupt State RP
+# Corrupt State RP — Unity 6
 
-Godot 4.5.2 mobile-first open-world RP project.
+Production direction: **Unity 6 + C# + Android**, with the PDF design document as the primary gameplay/world reference.
 
-## Real 3D foundation now implemented
-- CharacterBody3D player controller with acceleration, gravity, turning and third-person camera.
-- Procedural humanoid placeholder with AnimationPlayer + AnimationTree state-machine structure (Idle/Walk), ready for licensed GLB/GLTF character replacement.
-- VehicleBody3D with four VehicleWheel3D wheels, steering, traction, suspension and braking.
-- Modular city generated through GridMap + MeshLibrary rather than hundreds of unrelated building nodes.
-- WorldEnvironment baseline with filmic tonemapping, glow and SSAO. SDFGI remains disabled for the Android/mobile renderer so the mobile build stays practical; it can be enabled in a separate high-end desktop profile.
-- Arabic mobile HUD, missions, economy, factions, inventory and local save remain integrated.
+## Source of truth
+The project PDF defines the city layout, districts, Arabic signage, institutions, New Citizen Program, jobs, economy, RP activities and progression. The Unity implementation must follow that document rather than inventing unrelated systems.
 
-## Asset policy
-Use only original or properly licensed GLB/GLTF assets. Do not copy One State RP, GTA, or other commercial game assets.
+## Engine
+- Unity 6.0.63f1
+- Android target
+- URP/mobile-first rendering
+- Unity glTFast for GLB/GLTF assets
+- Server-authoritative multiplayer architecture planned from the start
 
-## Production roadmap
-1. Import licensed GLB/GLTF character + vehicle packs and connect real animations.
-2. Expand the city into districts with interiors, traffic, pedestrians and navigation.
-3. Add LOD/visibility/streaming budgets for a large mobile world.
-4. Build the authoritative online backend: accounts, persistent economy, jobs, factions, chat/voice and admin systems.
-5. Add advanced police/EMS/criminal gameplay, housing, businesses, vehicles, missions and events.
+## World quality
+The target is a realistic open-world RP city:
+- Realistic licensed buildings, vehicles, characters and environment assets.
+- Arabic-first signage and street naming.
+- Downtown/commercial, rich residential, poor residential, gang, government, coast, port, forest, mountain, prison and military areas.
+- Airport, municipality, police, hospital, bank, court, university, driving school, dealerships, services and other PDF-defined landmarks.
+- No Roblox-style primitive city and no copied GTA/FiveM/commercial-game assets.
 
+## New Citizen Program
+The ten PDF onboarding missions are the authoritative progression reference, including identity, bank, driving license, first vehicle, first job, government visits, lawful play, city discovery, social RP and final career selection/rewards.
 
-## Batch 1 — Real-world test foundation
-- Expanded the playable city footprint to 600m x 600m.
-- Added a street-detail pass with street lights.
-- Added a traffic manager foundation for moving civilian vehicles.
-- Added a reusable interaction base for future doors, shops, NPCs, vehicles and services.
-- Vehicle foundation now supports engine state, headlights, horn state, repair state and runtime condition data.
-- The first test build is still a development build; the final city will be expanded far beyond this footprint using streamed districts.
+## Build
+The active CI workflow is `.github/workflows/unity-android.yml`. Unity license credentials are supplied through GitHub Actions secrets when building. No license file or secret is committed to the repository.
 
-## Legal 3D asset sources under evaluation
-- Quaternius Downtown City MegaKit — CC0, glTF/FBX/OBJ, Godot-compatible source versions.
-- Quaternius Universal Base Characters — CC0, rigged characters.
-- Quaternius Universal Animation Library — CC0, 120+ retargetable animations.
-- Poly Haven — CC0 models, materials and HDRIs.
-- Kenney Car Kit — CC0 vehicle models available in GLB/FBX/OBJ.
-
-Asset sources are evaluated individually before inclusion. Commercial game assets from GTA, One State RP or other copyrighted games will not be copied.
-
-## Batch 2 — PDF-aligned world regions
-- Added a first visual region pass based directly on the project PDF: coastal beach/sea, forest settlement, mountain route, isolated desert prison, mountain military base, and a working port layout.
-- Added Arabic district/location signage for the commercial center, rich district, poor district, gang district, coast, forest, military base and prison.
-- Reused the licensed build-time GLB city and vehicle assets instead of relying only on primitive fallback geometry.
-- Kept the existing Godot/mobile pipeline intact; this batch is focused on making the world visibly resemble the RP design before deeper gameplay systems are migrated.
-
-### Batch 2 — Playable city core
-- Built the central city grid around the PDF's citizen journey instead of a generic test scene.
-- Added named Arabic streets and visible landmarks for Civil Affairs/Municipality, Central Bank, Court, Government, Police, Hospital, RP University, Driving School, Car Dealership, Mechanic Garage, Phone Shop, Restaurant and Media/Training buildings.
-- Added commercial towers, residential districts (Rich/Poor/Gang), dealership vehicles and a first connected street network using the licensed road/building assets.
-- Repositioned the forest/mountain layer so the regions remain inside the playable 600×600 world bounds.
-- Updated the initial player/vehicle locations and landmark interaction coordinates to match the new city layout.
-
-## Batch 3 — Playable New Citizen Program
-- Replaced the old manual mission-advance button logic with a persistent PDF-aligned onboarding state machine.
-- Implemented real sequential interactions for identity, bank account/ATM, driving theory + practical, dealership purchase/registration, civilian job selection, government visits, lawful-play timer, city discovery, social interaction and final career-path selection.
-- Implemented the PDF rewards: identity reward, bank reward, 500 XP driving reward, 10% first-maintenance discount flag, 5,000$ legal-income target, government-visit rewards, lawful-citizen reward, city-map reward, social-citizen reward and the final 10,000$ completion package.
-- Added the final completion package state: مواطن الجمهورية, starter vehicle, 7-day rental-home timer and official-job unlock flag.
-- Added visible airport, public park and starter rental-home landmarks to support the onboarding route.
-- Added local persistence for every onboarding sub-step so progress does not reset between launches.
-- Added a dedicated scripts/new_citizen_program.gd state machine to keep progression logic separate from the world/HUD code.
-- The current implementation remains a local development prototype; authoritative online persistence, multiplayer replication and server-side anti-cheat are still planned for the later backend phase.
+## Development rule
+Before adding major systems or assets, review the current Unity project and the PDF requirements, preserve working code, and validate changes through the real Unity build before claiming an APK is ready.
