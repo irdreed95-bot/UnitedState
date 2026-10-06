@@ -230,7 +230,7 @@ func _build_hud() -> void:
 	panel_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	panel_body.add_theme_font_size_override("font_size", 17)
 	panel.add_child(panel_body)
-	_add_panel_button("إغلاق", Vector2(480, 398), Callable(self, "_close_panel"))
+	_add_panel_button("إغلاق", Vector2(500, 410), Callable(self, "_close_panel"))
 
 func _add_button_to(parent: Control, txt: String, cb: Callable) -> void:
 	var b := Button.new()
@@ -296,7 +296,7 @@ func _interact() -> void:
 	if citizen_program:
 		var program_result := citizen_program.interact(nearest, money)
 		if program_result.advanced or program_result.reward_money > 0 or program_result.reward_xp > 0 or program_result.message != "":
-			if program_result.message != "" and (program_result.advanced or program_result.reward_money > 0 or program_result.reward_xp > 0 or citizen_program.mission_index <= 5):
+			if program_result.message != "":
 				_apply_program_result(program_result)
 				_save_game()
 				return
@@ -350,6 +350,16 @@ func _apply_program_result(result: Dictionary) -> void:
 	if result.get("message", "") != "":
 		_show_notice(str(result.message))
 	mission_index = citizen_program.mission_index
+	if citizen_program.job_selected and current_job == "عاطل":
+		current_job = "سائق تاكسي"
+	if citizen_program.identity_issued:
+		inventory["هوية"] = 1
+	if citizen_program.bank_card_received:
+		inventory["بطاقة بنكية"] = 1
+	if citizen_program.practical_passed:
+		inventory["رخصة قيادة"] = 1
+	if citizen_program.vehicle_registered:
+		inventory["مفتاح المركبة"] = 1
 	if citizen_program.completed:
 		_show_notice("🎉 برنامج المواطنين الجدد مكتمل — أنت الآن مواطن الجمهورية.")
 	_update_hud()
@@ -393,8 +403,8 @@ func _show_future_paths() -> void:
 	for i in paths.size():
 		var b := Button.new()
 		b.text = paths[i]
-		b.position = Vector2(24 + (i % 3) * 205, 300 + (i / 3) * 50)
-		b.size = Vector2(185, 42)
+		b.position = Vector2(24 + (i % 3) * 205, 270 + (i / 3) * 48)
+		b.size = Vector2(185, 40)
 		b.pressed.connect(_select_future_path.bind(paths[i]))
 		panel.add_child(b)
 		future_buttons.append(b)
@@ -490,6 +500,8 @@ func _nearest_landmark() -> String:
 		"المطار": Vector3(245, 0, 0),
 		"الحديقة العامة": Vector3(90, 0, 90),
 		"المنطقة التجارية": Vector3(0, 0, 185),
+		"منطقة العصابات": Vector3(-125, 0, 145),
+		"السوق": Vector3(0, 0, 135),
 		"معاملة RP": Vector3(0, 0, 135),
 	}
 	var nearest := ""
@@ -502,7 +514,7 @@ func _nearest_landmark() -> String:
 	if citizen_program and citizen_program.mission_index == 8:
 		var npc_distance := 99999.0
 		for child in world.get_children():
-			if child is Node3D and str(child.name).begins_with("شرطي") or str(child.name).begins_with("مسعف") or str(child.name).begins_with("موظف"):
+			if child is Node3D and (str(child.name).begins_with("شرطي") or str(child.name).begins_with("مسعف") or str(child.name).begins_with("موظف")):
 				var nd: float = p.distance_to(child.global_position)
 				if nd < npc_distance:
 					npc_distance = nd
