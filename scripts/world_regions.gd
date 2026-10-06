@@ -42,20 +42,20 @@ func _add_coast(world: Node3D) -> void:
         _add_asset(world, ASSET_CARS + "suv.glb", Vector3(-180 + i * 70, 0.2, 286), 0.85, "BeachVehicle")
 
 func _add_forest(world: Node3D) -> void:
-    var forest_center := Vector3(0, 0, -360)
+    var forest_center := Vector3(0, 0, -235)
     for i in range(150):
         var p := forest_center + Vector3(rng.randf_range(-270, 270), 0, rng.randf_range(-80, 80))
         _add_tree(world, p, rng.randf_range(0.8, 1.5))
-    for p in [Vector3(-180, 0, -345), Vector3(150, 0, -360), Vector3(40, 0, -400)]:
+    for p in [Vector3(-180, 0, -220), Vector3(150, 0, -235), Vector3(40, 0, -270)]:
         _add_asset(world, ASSET_CITY + "suburban_c.glb", p, 1.15, "ForestHouse")
 
 func _add_mountains(world: Node3D) -> void:
     for i in range(18):
-        var x := -260.0 + i * 30.0
+        var x := -255.0 + i * 30.0
         var h := 35.0 + float((i * 17) % 45)
-        _add_hill(world, Vector3(x, h * 0.5, -455), Vector3(28, h, 55))
+        _add_hill(world, Vector3(x, h * 0.5, -295), Vector3(28, h, 55))
     for i in range(7):
-        _add_asset(world, ASSET_CITY + "suburban_b.glb", Vector3(-190 + i * 62, 12, -405), 0.75, "MountainStructure")
+        _add_asset(world, ASSET_CITY + "suburban_b.glb", Vector3(-190 + i * 62, 12, -265), 0.75, "MountainStructure")
 
 func _add_desert_prison(world: Node3D) -> void:
     var base := Vector3(235, 0, -255)
