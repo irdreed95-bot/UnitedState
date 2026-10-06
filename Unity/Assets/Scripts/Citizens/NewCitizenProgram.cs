@@ -32,6 +32,7 @@ namespace CorruptStateRP.Citizens
         Canvas canvas;
         Text progressText;
         RectTransform listRoot;
+        RectTransform rootPanel;
         int selectedMission;
 
         public Mission[] Missions => missions;
@@ -61,7 +62,8 @@ namespace CorruptStateRP.Citizens
                 go.AddComponent<GraphicRaycaster>();
             }
 
-            var root = Panel(canvas.transform, new Color(.025f,.03f,.04f,.96f));
+            rootPanel = Panel(canvas.transform, new Color(.025f,.03f,.04f,.96f));
+            var root = rootPanel;
             root.anchorMin = new Vector2(.53f,.06f);
             root.anchorMax = new Vector2(.97f,.94f);
             root.offsetMin = root.offsetMax = Vector2.zero;
@@ -87,6 +89,12 @@ namespace CorruptStateRP.Citizens
             close.GetComponent<RectTransform>().offsetMin = close.GetComponent<RectTransform>().offsetMax = Vector2.zero;
 
             Refresh();
+            rootPanel.gameObject.SetActive(false);
+        }
+
+        public void Show()
+        {
+            if (rootPanel != null) { rootPanel.gameObject.SetActive(true); Refresh(); }
         }
 
         void Refresh()
