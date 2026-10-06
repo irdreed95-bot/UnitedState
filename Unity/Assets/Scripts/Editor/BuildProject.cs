@@ -28,6 +28,8 @@ public static class BuildProject{
   }else{
    var gm=new GameObject("GameManager");
    gm.AddComponent<CorruptStateRP.GameManager>();
+   var mobile=new GameObject("MobileHUD");
+   mobile.AddComponent<CorruptStateRP.Mobile.MobileHUD>();
    var citizen=new GameObject("NewCitizenProgram");
    citizen.AddComponent<CorruptStateRP.Citizens.NewCitizenProgram>();
   }
