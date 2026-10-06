@@ -43,3 +43,10 @@ Asset sources are evaluated individually before inclusion. Commercial game asset
 - Added Arabic district/location signage for the commercial center, rich district, poor district, gang district, coast, forest, military base and prison.
 - Reused the licensed build-time GLB city and vehicle assets instead of relying only on primitive fallback geometry.
 - Kept the existing Godot/mobile pipeline intact; this batch is focused on making the world visibly resemble the RP design before deeper gameplay systems are migrated.
+
+### Batch 2 — Playable city core
+- Built the central city grid around the PDF's citizen journey instead of a generic test scene.
+- Added named Arabic streets and visible landmarks for Civil Affairs/Municipality, Central Bank, Court, Government, Police, Hospital, RP University, Driving School, Car Dealership, Mechanic Garage, Phone Shop, Restaurant and Media/Training buildings.
+- Added commercial towers, residential districts (Rich/Poor/Gang), dealership vehicles and a first connected street network using the licensed road/building assets.
+- Repositioned the forest/mountain layer so the regions remain inside the playable 600×600 world bounds.
+- Updated the initial player/vehicle locations and landmark interaction coordinates to match the new city layout.
