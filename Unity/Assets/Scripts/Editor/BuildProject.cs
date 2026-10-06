@@ -4,6 +4,11 @@ namespace CorruptStateRP.Editor {
 public static class BuildProject{
  [MenuItem("Corrupt State RP/Generate Onboarding Scenes")]
  public static void GenerateOnboardingScenes(){
+  PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
+  PlayerSettings.allowedAutorotateToPortrait=false;
+  PlayerSettings.allowedAutorotateToPortraitUpsideDown=false;
+  PlayerSettings.allowedAutorotateToLandscapeRight=false;
+  PlayerSettings.allowedAutorotateToLandscapeLeft=true;
   System.IO.Directory.CreateDirectory("Assets/Scenes");
   Make("SplashScreenScene",CorruptStateRP.Onboarding.OnboardingScreen.Mode.Splash);
   Make("LoginScene",CorruptStateRP.Onboarding.OnboardingScreen.Mode.Login);
