@@ -2,7 +2,8 @@ name: Build Unity Android APK
 
 on:
   workflow_dispatch:
-  # Manual build only until Unity license secrets are configured.
+  push:
+    branches: [main]
 
 permissions:
   contents: read
