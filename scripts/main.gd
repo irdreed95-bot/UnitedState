@@ -3,7 +3,7 @@ extends Node3D
 const CITY_SIZE := 600.0
 const BATCH_ONE := "Real World Foundation"
 const SAVE_PATH := "user://corrupt_state_save.json"
-const MISSIONS := ["استخراج الهوية الوطنية", "فتح الحساب البنكي", "استخراج رخصة القيادة", "شراء أول مركبة", "الحصول على أول وظيفة", "زيارة المؤسسات الحكومية", "الالتزام بالقانون", "التعرف على المدينة", "التفاعل مع المجتمع", "اختيار المستقبل"]
+const MISSIONS := RPNewCitizenProgram.MISSION_NAMES
 const FACTIONS := ["مدني", "الشرطة", "الجيش", "الإسعاف", "الدفاع المدني", "الحكومة", "القضاء", "السجن", "عصابة المدينة", "عصابة الميناء"]
 const JOBS := {"سائق شاحنة": 900, "سائق تاكسي": 650, "ميكانيكي": 800, "مسعف": 1000, "شرطي": 1200, "رجل إطفاء": 1100, "حارس أمن": 850, "تاجر": 750}
 
@@ -35,9 +35,13 @@ var current_job := "عاطل"
 var current_faction := "مدني"
 var territory_progress := 0
 var in_vehicle := false
+var citizen_program: RPNewCitizenProgram
+var rental_home_until_unix := 0
+var future_buttons: Array[Button] = []
 var inventory := {"ماء": 3, "طعام": 2, "إسعاف": 1, "ذخيرة": 20, "هوية": 1}
 
 func _ready() -> void:
+	citizen_program = RPNewCitizenProgram.new()
 	_load_game()
 	world = RPWorldBuilder.new()
 	world.name = "World"
@@ -61,6 +65,11 @@ func _process(delta: float) -> void:
 	if hunger <= 0.0 or thirst <= 0.0:
 		health = max(1.0, health - delta * 0.8)
 	stamina = min(100.0, stamina + delta * 8.0)
+	if citizen_program:
+		citizen_program.tick_lawful(delta, wanted, false)
+		if citizen_program.mission_index == 6 and citizen_program.law_minutes() >= 30.0:
+			var law_result := citizen_program.complete_lawful()
+			_apply_program_result(law_result)
 	_update_hud()
 
 func _physics_process(delta: float) -> void:
@@ -191,6 +200,7 @@ func _build_hud() -> void:
 	_add_button_to(menu, "الجرد", Callable(self, "_inventory"))
 	_add_button_to(menu, "الفصائل", Callable(self, "_factions"))
 	_add_button_to(menu, "الوظائف", Callable(self, "_jobs"))
+	_add_button_to(menu, "العمل", Callable(self, "_work_shift"))
 	_add_button_to(menu, "حفظ", Callable(self, "_save_game"))
 
 	var dpad := Control.new()
@@ -265,15 +275,32 @@ func _toggle_phone() -> void:
 		_close_panel()
 
 func _next_mission() -> void:
-	mission_index = (mission_index + 1) % MISSIONS.size()
-	xp += 100
-	money += 250
-	_level_check()
-	_show_notice("المهمة: %s — +250$ +100 XP" % MISSIONS[mission_index])
-	_save_game()
+	_show_panel("برنامج المواطنين الجدد", _program_summary())
 
 func _interact() -> void:
 	var nearest := _nearest_landmark()
+	if nearest == "":
+		_show_notice("اقترب من نقطة تفاعل أو مؤسسة واضحة ثم اضغط «تفاعل».")
+		return
+
+	if citizen_program and citizen_program.mission_index == 9 and nearest == "دار الحكومة":
+		_show_future_paths()
+		return
+
+	if citizen_program and citizen_program.mission_index == 8 and nearest == "مواطن":
+		var social_result := citizen_program.interact("مواطن", money)
+		_apply_program_result(social_result)
+		_save_game()
+		return
+
+	if citizen_program:
+		var program_result := citizen_program.interact(nearest, money)
+		if program_result.advanced or program_result.reward_money > 0 or program_result.reward_xp > 0 or program_result.message != "":
+			if program_result.message != "" and (program_result.advanced or program_result.reward_money > 0 or program_result.reward_xp > 0 or citizen_program.mission_index <= 5):
+				_apply_program_result(program_result)
+				_save_game()
+				return
+
 	match nearest:
 		"مركز الشرطة":
 			wanted = max(0, wanted - 1)
@@ -314,6 +341,81 @@ func _interact() -> void:
 			_level_check()
 			_show_notice("تفاعل مدني ناجح +100$ +25 XP")
 
+func _apply_program_result(result: Dictionary) -> void:
+	if result.has("reward_money"):
+		money += int(result.reward_money)
+	if result.has("reward_xp"):
+		xp += int(result.reward_xp)
+	_level_check()
+	if result.get("message", "") != "":
+		_show_notice(str(result.message))
+	mission_index = citizen_program.mission_index
+	if citizen_program.completed:
+		_show_notice("🎉 برنامج المواطنين الجدد مكتمل — أنت الآن مواطن الجمهورية.")
+	_update_hud()
+
+func _program_summary() -> String:
+	if citizen_program == null:
+		return "برنامج المواطنين الجدد غير مهيأ."
+	var progress := "المهمة %d / %d — %s" % [citizen_program.mission_index + 1, citizen_program.TOTAL_MISSIONS, citizen_program.mission_name()]
+	var objective := citizen_program.objective()
+	var law := ""
+	if citizen_program.mission_index == 6:
+		law = "\n\nمدة الالتزام: %.1f / 30 دقيقة" % citizen_program.law_minutes()
+	var extras := "\n\nالهوية: %s | البنك: %s | الرخصة: %s | المركبة: %s | الوظيفة: %s" % [
+		"✓" if citizen_program.identity_issued else "—",
+		"✓" if citizen_program.bank_opened and citizen_program.atm_used else "—",
+		"✓" if citizen_program.practical_passed else "—",
+		"✓" if citizen_program.vehicle_registered else "—",
+		current_job if citizen_program.job_selected else "—",
+	]
+	return "%s\n\nالمطلوب:\n%s%s%s" % [progress, objective, law, extras]
+
+func _work_shift() -> void:
+	if citizen_program == null or not citizen_program.job_selected:
+		_show_notice("اختر وظيفتك أولاً من مركز التوظيف.")
+		return
+	var pay := 500
+	money += pay
+	citizen_program.add_legal_earnings(pay)
+	xp += 75
+	_show_notice("أنهيت وردية قانونية كـ%s +%d$ — إجمالي دخل المهمة %d$/5000$" % [current_job, pay, citizen_program.legal_earnings])
+	_save_game()
+
+func _show_future_paths() -> void:
+	_close_panel()
+	_show_panel("اختيار المستقبل", "اختر المسار الذي يناسب شخصيتك داخل الجمهورية.\n\nالاختيار يفتح جميع الوظائف الرسمية ويُنهي برنامج المواطنين الجدد.")
+	for b in future_buttons:
+		if is_instance_valid(b):
+			b.queue_free()
+	future_buttons.clear()
+	var paths := ["الشرطة", "المستشفى", "القانون", "الحكومة", "تأسيس شركة", "الوظائف المدنية", "الإعلام"]
+	for i in paths.size():
+		var b := Button.new()
+		b.text = paths[i]
+		b.position = Vector2(24 + (i % 3) * 205, 300 + (i / 3) * 50)
+		b.size = Vector2(185, 42)
+		b.pressed.connect(_select_future_path.bind(paths[i]))
+		panel.add_child(b)
+		future_buttons.append(b)
+
+func _select_future_path(path: String) -> void:
+	var result := citizen_program.choose_future(path)
+	if not result.success:
+		_show_notice(result.message)
+		return
+	money += int(result.reward_money)
+	xp += int(result.reward_xp)
+	current_faction = "مدني"
+	citizen_program.starter_vehicle_awarded = true
+	vehicle.global_position = player.global_position + Vector3(3.0, 0.8, 0)
+	vehicle.set_controlled(false)
+	vehicle.engine_on = false
+	rental_home_until_unix = Time.get_unix_time_from_system() + 7 * 24 * 60 * 60
+	_show_notice("مبروك! +10,000$ | سيارة بداية مجانية | منزل إيجار 7 أيام | لقب مواطن الجمهورية")
+	_show_panel("مواطن الجمهورية", "المسار المختار: %s\n\n✓ 10,000$\n✓ سيارة بداية اقتصادية\n✓ منزل إيجار مجاني لمدة 7 أيام\n✓ لقب مواطن الجمهورية\n✓ جميع الوظائف الرسمية مفتوحة\n\nهذه هي بداية رحلتك داخل الجمهورية." % path)
+	_save_game()
+
 func _vehicle_controls() -> void:
 	if in_vehicle and vehicle:
 		vehicle.toggle_engine()
@@ -343,8 +445,14 @@ func _factions() -> void:
 
 func _jobs() -> void:
 	var lines := ["الوظيفة الحالية: %s" % current_job, ""]
-	for job in JOBS:
-		lines.append("• %s — %d$" % [job, JOBS[job]])
+	if citizen_program and citizen_program.mission_index < 4:
+		lines.append("الوظائف المدنية ستُفتح ضمن برنامج المواطنين الجدد.")
+	else:
+		for job in JOBS:
+			lines.append("• %s — %d$" % [job, JOBS[job]])
+		if citizen_program and citizen_program.mission_index == 4:
+			lines.append("")
+			lines.append("الدخل القانوني: %d$ / 5,000$" % citizen_program.legal_earnings)
 	_show_panel("الوظائف", "\n".join(lines))
 
 func _buy_food() -> void:
@@ -365,7 +473,25 @@ func _level_check() -> void:
 
 func _nearest_landmark() -> String:
 	var p := player.global_position
-	var landmarks := {"البلدية والأحوال المدنية": Vector3(-42, 0, -42), "البنك المركزي": Vector3(42, 0, -42), "المحكمة": Vector3(-42, 0, 42), "دار الحكومة": Vector3(42, 0, 42), "مركز الشرطة": Vector3(-125, 0, -42), "المستشفى": Vector3(125, 0, -42), "جامعة RP": Vector3(0, 0, -135), "مدرسة القيادة": Vector3(-125, 0, 115), "وكالة السيارات": Vector3(-42, 0, 135), "الكراج والميكانيكي": Vector3(42, 0, 135), "منطقة العصابات": Vector3(-125, 0, 145), "الميناء": Vector3(225, 0, 205), "السجن": Vector3(235, 0, -255)}
+	var landmarks := {
+		"البلدية والأحوال المدنية": Vector3(-42, 0, -42),
+		"البنك المركزي": Vector3(42, 0, -42),
+		"المحكمة": Vector3(-42, 0, 42),
+		"دار الحكومة": Vector3(42, 0, 42),
+		"مركز الشرطة": Vector3(-125, 0, -42),
+		"المستشفى": Vector3(125, 0, -42),
+		"جامعة RP": Vector3(0, 0, -135),
+		"مدرسة القيادة": Vector3(-125, 0, 115),
+		"وكالة السيارات": Vector3(-42, 0, 135),
+		"الكراج": Vector3(42, 0, 135),
+		"مركز التوظيف": Vector3(-78, 0, 48),
+		"الميناء": Vector3(225, 0, 205),
+		"السجن": Vector3(235, 0, -255),
+		"المطار": Vector3(245, 0, 0),
+		"الحديقة العامة": Vector3(90, 0, 90),
+		"المنطقة التجارية": Vector3(0, 0, 185),
+		"معاملة RP": Vector3(0, 0, 135),
+	}
 	var nearest := ""
 	var distance := 99999.0
 	for name in landmarks:
@@ -373,12 +499,52 @@ func _nearest_landmark() -> String:
 		if d < distance:
 			distance = d
 			nearest = name
+	if citizen_program and citizen_program.mission_index == 8:
+		var npc_distance := 99999.0
+		for child in world.get_children():
+			if child is Node3D and str(child.name).begins_with("شرطي") or str(child.name).begins_with("مسعف") or str(child.name).begins_with("موظف"):
+				var nd: float = p.distance_to(child.global_position)
+				if nd < npc_distance:
+					npc_distance = nd
+		if npc_distance < min(distance, 10.0):
+			return "مواطن"
 	return nearest if distance < 28.0 else ""
 
 func _save_game() -> void:
 	if not player:
 		return
-	var data := {"money": money, "bank": bank, "xp": xp, "level": level, "health": health, "hunger": hunger, "thirst": thirst, "stamina": stamina, "wanted": wanted, "mission_index": mission_index, "current_job": current_job, "current_faction": current_faction, "territory_progress": territory_progress, "inventory": inventory, "position": [player.global_position.x, player.global_position.y, player.global_position.z]}
+	var data := {
+		"money": money, "bank": bank, "xp": xp, "level": level, "health": health,
+		"hunger": hunger, "thirst": thirst, "stamina": stamina, "wanted": wanted,
+		"mission_index": mission_index, "current_job": current_job, "current_faction": current_faction,
+		"territory_progress": territory_progress, "inventory": inventory,
+		"position": [player.global_position.x, player.global_position.y, player.global_position.z],
+		"citizen_program": {
+			"mission_index": citizen_program.mission_index,
+			"identity_issued": citizen_program.identity_issued,
+			"bank_opened": citizen_program.bank_opened,
+			"bank_card_received": citizen_program.bank_card_received,
+			"atm_used": citizen_program.atm_used,
+			"theory_passed": citizen_program.theory_passed,
+			"practical_passed": citizen_program.practical_passed,
+			"vehicle_purchased": citizen_program.vehicle_purchased,
+			"vehicle_registered": citizen_program.vehicle_registered,
+			"first_maintenance_discount": citizen_program.first_maintenance_discount,
+			"job_selected": citizen_program.job_selected,
+			"legal_earnings": citizen_program.legal_earnings,
+			"government_visits": citizen_program.government_visits,
+			"law_seconds": citizen_program.law_seconds,
+			"city_discovery": citizen_program.city_discovery,
+			"greetings": citizen_program.greetings,
+			"first_rp_transaction": citizen_program.first_rp_transaction,
+			"future_path": citizen_program.future_path,
+			"completed": citizen_program.completed,
+			"citizen_title": citizen_program.citizen_title,
+			"rental_home_until_unix": rental_home_until_unix,
+			"official_jobs_unlocked": citizen_program.official_jobs_unlocked,
+			"starter_vehicle_awarded": citizen_program.starter_vehicle_awarded
+		}
+	}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(data))
@@ -406,12 +572,38 @@ func _load_game() -> void:
 	territory_progress = int(data.get("territory_progress", territory_progress))
 	if data.has("inventory"):
 		inventory = data["inventory"]
+	if data.has("citizen_program") and citizen_program:
+		var cp: Dictionary = data["citizen_program"]
+		citizen_program.mission_index = int(cp.get("mission_index", citizen_program.mission_index))
+		citizen_program.identity_issued = bool(cp.get("identity_issued", false))
+		citizen_program.bank_opened = bool(cp.get("bank_opened", false))
+		citizen_program.bank_card_received = bool(cp.get("bank_card_received", false))
+		citizen_program.atm_used = bool(cp.get("atm_used", false))
+		citizen_program.theory_passed = bool(cp.get("theory_passed", false))
+		citizen_program.practical_passed = bool(cp.get("practical_passed", false))
+		citizen_program.vehicle_purchased = bool(cp.get("vehicle_purchased", false))
+		citizen_program.vehicle_registered = bool(cp.get("vehicle_registered", false))
+		citizen_program.first_maintenance_discount = bool(cp.get("first_maintenance_discount", false))
+		citizen_program.job_selected = bool(cp.get("job_selected", false))
+		citizen_program.legal_earnings = int(cp.get("legal_earnings", 0))
+		citizen_program.government_visits = cp.get("government_visits", {})
+		citizen_program.law_seconds = float(cp.get("law_seconds", 0.0))
+		citizen_program.city_discovery = cp.get("city_discovery", {})
+		citizen_program.greetings = int(cp.get("greetings", 0))
+		citizen_program.first_rp_transaction = bool(cp.get("first_rp_transaction", false))
+		citizen_program.future_path = str(cp.get("future_path", ""))
+		citizen_program.completed = bool(cp.get("completed", false))
+		citizen_program.citizen_title = str(cp.get("citizen_title", ""))
+		citizen_program.official_jobs_unlocked = bool(cp.get("official_jobs_unlocked", false))
+		citizen_program.starter_vehicle_awarded = bool(cp.get("starter_vehicle_awarded", false))
+		rental_home_until_unix = int(cp.get("rental_home_until_unix", 0))
+		mission_index = citizen_program.mission_index
 
 func _update_hud() -> void:
 	if stats_label:
 		stats_label.text = "CORRUPT STATE RP\n$ %d | بنك %d$ | LV %d | XP %d\n❤️ %.0f%%  🍖 %.0f%%  💧 %.0f%%  ⭐ %d\n%s • %s" % [money, bank, level, xp, health, hunger, thirst, wanted, current_job, current_faction]
 	if mission_label:
-		mission_label.text = "المهمة: %s" % MISSIONS[mission_index]
+		mission_label.text = "المهمة: %s\n%s" % [citizen_program.mission_name() if citizen_program else MISSIONS[mission_index], citizen_program.objective() if citizen_program else ""]
 
 func _show_notice(message: String) -> void:
 	if notice_label:
