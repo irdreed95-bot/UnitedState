@@ -1,4 +1,6 @@
 #include "CSRPCharacter.h"
+#include "CSRPInteractableActor.h"
+#include "EngineUtils.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 ACSRPCharacter::ACSRPCharacter()
@@ -15,7 +17,6 @@ ACSRPCharacter::ACSRPCharacter()
 void ACSRPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
-
     PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ACSRPCharacter::MoveForward);
     PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ACSRPCharacter::MoveRight);
     PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &ACSRPCharacter::Interact);
@@ -36,13 +37,33 @@ void ACSRPCharacter::MoveRight(float Value)
 void ACSRPCharacter::Interact()
 {
     if (HasAuthority())
-        return;
-
-    ServerInteract();
+        ServerInteract_Implementation();
+    else
+        ServerInteract();
 }
 
 void ACSRPCharacter::ServerInteract_Implementation()
 {
-    // Server-only interaction entry point.
-    // Batch 6 will bind this to validated world interaction actors.
+    if (!HasAuthority())
+        return;
+
+    ACSRPInteractableActor* BestTarget = nullptr;
+    float BestDistanceSq = TNumericLimits<float>::Max();
+
+    for (TActorIterator<ACSRPInteractableActor> It(GetWorld()); It; ++It)
+    {
+        ACSRPInteractableActor* Candidate = *It;
+        if (!IsValid(Candidate) || !Candidate->CanInteract(this))
+            continue;
+
+        const float DistanceSq = FVector::DistSquared(GetActorLocation(), Candidate->GetActorLocation());
+        if (DistanceSq < BestDistanceSq)
+        {
+            BestDistanceSq = DistanceSq;
+            BestTarget = Candidate;
+        }
+    }
+
+    if (BestTarget)
+        BestTarget->ExecuteInteraction(GetController());
 }
