@@ -43,6 +43,8 @@ func _ready() -> void:
 	world.name = "World"
 	add_child(world)
 	world.build()
+	var regions := RPWorldRegions.new()
+	regions.build(world)
 	_build_player()
 	_build_npcs()
 	_build_vehicles()
