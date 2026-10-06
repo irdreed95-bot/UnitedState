@@ -48,6 +48,12 @@ public static class BuildProject{
  [MenuItem("Corrupt State RP/Build Android")]
  public static void BuildAndroid(){
   GenerateOnboardingScenes();
+  PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
+  PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64 | AndroidArchitecture.ARMv7;
+  PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
+  PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevel35;
+  PlayerSettings.Android.androidIsGame = true;
+
   var o=new BuildPlayerOptions{scenes=new[]{"Assets/Scenes/SplashScreenScene.unity","Assets/Scenes/LoginScene.unity","Assets/Scenes/LobbyScene.unity","Assets/Scenes/CityRPScene.unity"},locationPathName="Builds/Android/CorruptStateRP.apk",target=BuildTarget.Android,options=BuildOptions.None};
   var r=BuildPipeline.BuildPlayer(o);
   if(r.summary.result!=BuildResult.Succeeded)throw new System.Exception("Android build failed: "+r.summary.result);
