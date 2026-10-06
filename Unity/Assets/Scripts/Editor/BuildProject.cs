@@ -30,6 +30,8 @@ public static class BuildProject{
    gm.AddComponent<CorruptStateRP.GameManager>();
    gm.AddComponent<CorruptStateRP.CityInteractionSystem>();
    gm.AddComponent<CorruptStateRP.FactionDashboard>();
+   gm.AddComponent<CorruptStateRP.AdminDashboard>();
+   gm.AddComponent<CorruptStateRP.AdminPanelController>();
    var mobile=new GameObject("MobileHUD");
    mobile.AddComponent<CorruptStateRP.Mobile.MobileHUD>();
    var citizen=new GameObject("NewCitizenProgram");
