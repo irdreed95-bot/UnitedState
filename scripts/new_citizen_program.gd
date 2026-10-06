@@ -138,7 +138,9 @@ func interact(location: String, player_money: int) -> Dictionary:
 						result.message = "سعر مركبة البداية 1,500$. لا يوجد رصيد كافٍ."
 					else:
 						vehicle_purchased = true
-						result.message = "تم شراء أول مركبة. سجّلها الآن باسمك."
+						result.reward_money = -1500
+						result.reward_xp = 150
+						result.message = "تم شراء أول مركبة مقابل 1,500$. سجّلها الآن باسمك."
 				elif not vehicle_registered:
 					vehicle_registered = true
 					first_maintenance_discount = true
