@@ -9,10 +9,14 @@ ACSRPPlayerState::ACSRPPlayerState()
 
 void ACSRPPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-    Super::GetLifetimeReplicatedProps(OutLifetimeProperty);
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(ACSRPPlayerState, Money);
     DOREPLIFETIME(ACSRPPlayerState, BankBalance);
     DOREPLIFETIME(ACSRPPlayerState, CitizenMissionIndex);
     DOREPLIFETIME(ACSRPPlayerState, CurrentJob);
     DOREPLIFETIME(ACSRPPlayerState, bCitizenProgramCompleted);
+    DOREPLIFETIME(ACSRPPlayerState, bStarterVehicleUnlocked);
+    DOREPLIFETIME(ACSRPPlayerState, bRentalHomeUnlocked);
+    DOREPLIFETIME(ACSRPPlayerState, RentalHomeExpiryUnix);
+    DOREPLIFETIME(ACSRPPlayerState, bOfficialJobUnlocked);
 }
