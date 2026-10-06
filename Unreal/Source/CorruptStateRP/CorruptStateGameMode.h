@@ -12,4 +12,5 @@ class CORRUPTSTATERP_API ACorruptStateGameMode : public AGameModeBase
 public:
     ACorruptStateGameMode();
     virtual void PostLogin(APlayerController* NewPlayer) override;
+    virtual void StartPlay() override;
 };
