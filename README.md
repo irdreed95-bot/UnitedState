@@ -37,3 +37,9 @@ Use only original or properly licensed GLB/GLTF assets. Do not copy One State RP
 - Kenney Car Kit — CC0 vehicle models available in GLB/FBX/OBJ.
 
 Asset sources are evaluated individually before inclusion. Commercial game assets from GTA, One State RP or other copyrighted games will not be copied.
+
+## Batch 2 — PDF-aligned world regions
+- Added a first visual region pass based directly on the project PDF: coastal beach/sea, forest settlement, mountain route, isolated desert prison, mountain military base, and a working port layout.
+- Added Arabic district/location signage for the commercial center, rich district, poor district, gang district, coast, forest, military base and prison.
+- Reused the licensed build-time GLB city and vehicle assets instead of relying only on primitive fallback geometry.
+- Kept the existing Godot/mobile pipeline intact; this batch is focused on making the world visibly resemble the RP design before deeper gameplay systems are migrated.
