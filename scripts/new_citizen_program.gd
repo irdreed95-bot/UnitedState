@@ -217,6 +217,14 @@ func tick_lawful(delta: float, wanted: int, traffic_violation: bool = false) -> 
 func law_minutes() -> float:
 	return law_seconds / 60.0
 
+func complete_lawful() -> Dictionary:
+	if mission_index != 6 or law_seconds < 1800.0 or completed:
+		return {"success": false, "message": "شرط الالتزام بالقانون لم يكتمل بعد."}
+	law_seconds = 1800.0
+	var result := {"advanced": true, "reward_money": 2000, "reward_xp": 500, "message": "أكملت 30 دقيقة دون مخالفة. حصلت على شهادة المواطن الملتزم."}
+	_advance(result)
+	return result
+
 func choose_future(path: String) -> Dictionary:
 	var allowed := ["الشرطة", "المستشفى", "القانون", "الحكومة", "تأسيس شركة", "الوظائف المدنية", "الإعلام"]
 	if mission_index != 9 or not allowed.has(path):
