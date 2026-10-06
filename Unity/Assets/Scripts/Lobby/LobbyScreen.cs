@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using CorruptStateRP.UI;
+using CorruptStateRP.Citizens;
 
 namespace CorruptStateRP.Lobby
 {
@@ -9,10 +10,14 @@ namespace CorruptStateRP.Lobby
     {
         Font font;
         RectTransform content;
+        NewCitizenProgram citizenProgram;
+        GameObject shopPanel;
 
         void Awake()
         {
             font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            var cp = new GameObject("NewCitizenProgram");
+            citizenProgram = cp.AddComponent<NewCitizenProgram>();
             Build();
         }
 
@@ -59,9 +64,25 @@ namespace CorruptStateRP.Lobby
             Text(factions, "الفصائل", 24, TextAnchor.UpperRight, new Vector2(-20,-16), new Vector2(250,40));
             Text(factions, "الشرطة  •  الجيش  •  الصحة\nالدفاع المدني  •  القضاء\nالحكومة  •  الأمن الوطني  •  العصابات", 18, TextAnchor.UpperRight, new Vector2(-20,-70), new Vector2(330,150));
 
-            Button(content, "المتجر والعروض", () => Debug.Log("Shop placeholder"), new Vector2(.035f,.12f), new Vector2(.28f,.23f));
-            Button(content, "برنامج المواطنين", () => Debug.Log("Citizen program"), new Vector2(.30f,.12f), new Vector2(.545f,.23f));
+            Button(content, "المتجر والعروض", () => ToggleShop(), new Vector2(.035f,.12f), new Vector2(.28f,.23f));
+            Button(content, "برنامج المواطنين", () => citizenProgram.Show(), new Vector2(.30f,.12f), new Vector2(.545f,.23f));
             Button(content, "دخول المدينة", () => SceneManager.LoadScene("CityRPScene"), new Vector2(.565f,.12f), new Vector2(.965f,.23f));
+        }
+
+
+        void ToggleShop()
+        {
+            if (shopPanel == null)
+            {
+                shopPanel = new GameObject("ShopPanel");
+                shopPanel.transform.SetParent(content,false);
+                var rt=shopPanel.AddComponent<RectTransform>(); Anchor(rt,.10f,.20f,.90f,.80f);
+                shopPanel.AddComponent<Image>().color=new Color(.025f,.03f,.04f,.99f);
+                Text(shopPanel.transform,"المتجر والعروض",28,TextAnchor.UpperRight,new Vector2(-24,-24),new Vector2(-40,50));
+                Text(shopPanel.transform,"مركبات بداية\nملابس وشخصيات\nعروض السكن\nباقات RP مستقبلية\n\nالمتجر متصل لاحقاً بنظام الاقتصاد والمخزون.",20,TextAnchor.UpperRight,new Vector2(-30,-95),new Vector2(-50,300));
+                Button(shopPanel.transform,"إغلاق",()=>shopPanel.SetActive(false),new Vector2(.68f,.05f),new Vector2(.94f,.14f));
+            }
+            shopPanel.SetActive(true);
         }
 
         void Mission(Transform parent, string title, string reward, float y)
