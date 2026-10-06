@@ -20,6 +20,7 @@ public static class BuildProject{
    var so=new SerializedObject(c);
    so.FindProperty("mode").enumValueIndex=(int)mode.Value;
    so.ApplyModifiedPropertiesWithoutUndo();
+   if(mode.Value==CorruptStateRP.Onboarding.OnboardingScreen.Mode.Lobby) go.AddComponent<CorruptStateRP.Lobby.LobbyScreen>();
    if(mode.Value==CorruptStateRP.Onboarding.OnboardingScreen.Mode.Splash){
     var auth=go.AddComponent<CorruptStateRP.Auth.AuthClient>();
     go.AddComponent<CorruptStateRP.Onboarding.OnboardingFlowController>();
