@@ -53,8 +53,11 @@ public static class BuildProject{
   PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
   PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevel35;
   PlayerSettings.Android.androidIsGame = true;
+  PlayerSettings.Android.useCustomKeystore = false;
+  PlayerSettings.Android.buildApkPerCpuArchitecture = false;
+  PlayerSettings.Android.splitApplicationBinary = false;
 
-  var o=new BuildPlayerOptions{scenes=new[]{"Assets/Scenes/SplashScreenScene.unity","Assets/Scenes/LoginScene.unity","Assets/Scenes/LobbyScene.unity","Assets/Scenes/CityRPScene.unity"},locationPathName="Builds/Android/CorruptStateRP.apk",target=BuildTarget.Android,options=BuildOptions.None};
+  var o=new BuildPlayerOptions{scenes=new[]{"Assets/Scenes/SplashScreenScene.unity","Assets/Scenes/LoginScene.unity","Assets/Scenes/LobbyScene.unity","Assets/Scenes/CityRPScene.unity"},locationPathName="Builds/Android/CorruptStateRP.apk",target=BuildTarget.Android,options=BuildOptions.Development | BuildOptions.AllowDebugging};
   var r=BuildPipeline.BuildPlayer(o);
   if(r.summary.result!=BuildResult.Succeeded)throw new System.Exception("Android build failed: "+r.summary.result);
  }
