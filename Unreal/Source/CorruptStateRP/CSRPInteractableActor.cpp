@@ -2,6 +2,7 @@
 #include "CSRPPlayerState.h"
 #include "GameFramework/Controller.h"
 #include "Net/UnrealNetwork.h"
+#include "Misc/DateTime.h"
 
 ACSRPInteractableActor::ACSRPInteractableActor()
 {
@@ -32,11 +33,26 @@ bool ACSRPInteractableActor::ExecuteInteraction(AController* InstigatingControll
     if (PlayerState->CitizenMissionIndex != RequiredMissionIndex)
         return false;
 
-    PlayerState->CitizenMissionIndex = FMath::Clamp(PlayerState->CitizenMissionIndex + 1, 0, 10);
-    PlayerState->bCitizenProgramCompleted = (PlayerState->CitizenMissionIndex >= 10);
+    // Mission-specific progression remains server-authoritative.
+    const int32 CompletedMission = PlayerState->CitizenMissionIndex;
+    PlayerState->CitizenMissionIndex = FMath::Clamp(CompletedMission + 1, 0, 10);
 
-    if (PlayerState->bCitizenProgramCompleted)
+    // PDF-aligned New Citizen Program rewards.
+    if (CompletedMission == 3)
+        PlayerState->bStarterVehicleUnlocked = true;
+
+    if (CompletedMission == 4)
+        PlayerState->CurrentJob = FName(TEXT("StarterCivilianJob"));
+
+    if (CompletedMission == 9)
+    {
+        PlayerState->bCitizenProgramCompleted = true;
         PlayerState->Money += 10000;
+        PlayerState->bStarterVehicleUnlocked = true;
+        PlayerState->bRentalHomeUnlocked = true;
+        PlayerState->RentalHomeExpiryUnix = (FDateTime::UtcNow() + FTimespan::FromDays(7)).ToUnixTimestamp();
+        PlayerState->bOfficialJobUnlocked = true;
+    }
 
     return true;
 }
