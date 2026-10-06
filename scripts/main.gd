@@ -3,7 +3,7 @@ extends Node3D
 const CITY_SIZE := 600.0
 const BATCH_ONE := "Real World Foundation"
 const SAVE_PATH := "user://corrupt_state_save.json"
-const MISSIONS := ["إكمال تسجيل المواطن", "فتح حساب بنكي", "استخراج رخصة القيادة", "شراء أول مركبة", "اختيار وظيفة", "زيارة مركز الشرطة", "زيارة المستشفى", "زيارة المحكمة", "التعرف على منطقة العصابات", "إكمال أول مهمة عمل", "شراء منزل أو شقة", "بناء سمعة داخل المدينة"]
+const MISSIONS := ["استخراج الهوية الوطنية", "فتح الحساب البنكي", "استخراج رخصة القيادة", "شراء أول مركبة", "الحصول على أول وظيفة", "زيارة المؤسسات الحكومية", "الالتزام بالقانون", "التعرف على المدينة", "التفاعل مع المجتمع", "اختيار المستقبل"]
 const FACTIONS := ["مدني", "الشرطة", "الجيش", "الإسعاف", "الدفاع المدني", "الحكومة", "القضاء", "السجن", "عصابة المدينة", "عصابة الميناء"]
 const JOBS := {"سائق شاحنة": 900, "سائق تاكسي": 650, "ميكانيكي": 800, "مسعف": 1000, "شرطي": 1200, "رجل إطفاء": 1100, "حارس أمن": 850, "تاجر": 750}
 
@@ -43,6 +43,8 @@ func _ready() -> void:
 	world.name = "World"
 	add_child(world)
 	world.build()
+	var city := RPCityCore.new()
+	city.build(world)
 	var regions := RPWorldRegions.new()
 	regions.build(world)
 	_build_player()
@@ -83,7 +85,7 @@ func _physics_process(delta: float) -> void:
 func _build_player() -> void:
 	player = RPPlayerController.new()
 	player.name = "Player"
-	player.position = Vector3(0, 1.2, 28)
+	player.position = Vector3(-42, 1.2, -68)
 	world.add_child(player)
 	camera = Camera3D.new()
 	camera.fov = 68.0
@@ -124,7 +126,7 @@ func _build_npcs() -> void:
 func _build_vehicles() -> void:
 	vehicle = RPVehicleController.new()
 	vehicle.name = "PlayerVehicle"
-	vehicle.position = Vector3(0, 1.0, 12)
+	vehicle.position = Vector3(-42, 1.0, 145)
 	vehicle.rotation_degrees.y = 180.0
 	vehicle.set_controlled(false)
 	world.add_child(vehicle)
@@ -363,7 +365,7 @@ func _level_check() -> void:
 
 func _nearest_landmark() -> String:
 	var p := player.global_position
-	var landmarks := {"مركز الشرطة": Vector3(-65, 0, -65), "المستشفى": Vector3(65, 0, -65), "البنك المركزي": Vector3(-65, 0, 65), "دار الحكومة": Vector3(65, 0, 65), "المحكمة": Vector3(-105, 0, 0), "السجن": Vector3(105, 0, 0), "الكراج": Vector3(0, 0, -105), "السوق": Vector3(0, 0, 105), "منطقة العصابات": Vector3(-105, 0, 105), "الميناء": Vector3(105, 0, 105)}
+	var landmarks := {"البلدية والأحوال المدنية": Vector3(-42, 0, -42), "البنك المركزي": Vector3(42, 0, -42), "المحكمة": Vector3(-42, 0, 42), "دار الحكومة": Vector3(42, 0, 42), "مركز الشرطة": Vector3(-125, 0, -42), "المستشفى": Vector3(125, 0, -42), "جامعة RP": Vector3(0, 0, -135), "مدرسة القيادة": Vector3(-125, 0, 115), "وكالة السيارات": Vector3(-42, 0, 135), "الكراج والميكانيكي": Vector3(42, 0, 135), "منطقة العصابات": Vector3(-125, 0, 145), "الميناء": Vector3(225, 0, 205), "السجن": Vector3(235, 0, -255)}
 	var nearest := ""
 	var distance := 99999.0
 	for name in landmarks:
