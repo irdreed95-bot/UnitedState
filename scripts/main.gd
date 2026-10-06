@@ -400,7 +400,7 @@ func _show_future_paths() -> void:
 			b.queue_free()
 	future_buttons.clear()
 	var paths := ["الشرطة", "المستشفى", "القانون", "الحكومة", "تأسيس شركة", "الوظائف المدنية", "الإعلام"]
-	for i in paths.size():
+	for i in range(paths.size()):
 		var b := Button.new()
 		b.text = paths[i]
 		b.position = Vector2(24 + (i % 3) * 205, 270 + (i / 3) * 48)
