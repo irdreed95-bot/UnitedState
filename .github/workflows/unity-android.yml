@@ -15,6 +15,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Download verified 3D assets
         working-directory: Unity
         run: |
@@ -22,6 +23,7 @@ jobs:
           sudo apt-get install -y -qq curl ca-certificates
           chmod +x scripts/download_assets.sh
           scripts/download_assets.sh
+
       - name: Build Unity Android
         uses: game-ci/unity-builder@v4
         env:
@@ -34,7 +36,23 @@ jobs:
           targetPlatform: Android
           buildMethod: CorruptStateRP.Editor.BuildProject.BuildAndroid
           versioning: None
-      - name: Verify APK integrity
+
+      - name: Sign APK with temporary debug certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="Unity/Builds/Android/CorruptStateRP.apk"
+          test -f "$APK"
+
+          KEYSTORE="Unity/debug.keystore"
+          keytool -genkeypair -v             -keystore "$KEYSTORE"             -storepass android             -alias androiddebugkey             -keypass android             -keyalg RSA             -keysize 2048             -validity 10000             -dname "CN=Android Debug,O=Android,C=US"             >/dev/null 2>&1 || true
+
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$APKSIGNER"
+
+          "$APKSIGNER" sign             --ks "$KEYSTORE"             --ks-pass pass:android             --key-pass pass:android             --ks-key-alias androiddebugkey             "$APK"
+
+      - name: Verify APK integrity and signature
         shell: bash
         run: |
           set -euo pipefail
@@ -43,13 +61,17 @@ jobs:
           test "$(stat -c%s "$APK")" -gt 1000000
           file "$APK" | grep -qi "zip"
           unzip -t "$APK" >/dev/null
+
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           test -n "$APKSIGNER"
           "$APKSIGNER" verify --verbose "$APK"
-          echo "APK verified: $(stat -c%s "$APK") bytes"
+
+          echo "APK verified and signed: $(stat -c%s "$APK") bytes"
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: CorruptStateRP-Unity-Android
           path: Unity/Builds/Android/CorruptStateRP.apk
           if-no-files-found: error
+          compression-level: 0
