@@ -5,6 +5,7 @@ public static class BuildProject{
  [MenuItem("Corrupt State RP/Generate Onboarding Scenes")]
  public static void GenerateOnboardingScenes(){
   PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
+  Generate3DPrefabs();
   PlayerSettings.allowedAutorotateToPortrait=false;
   PlayerSettings.allowedAutorotateToPortraitUpsideDown=false;
   PlayerSettings.allowedAutorotateToLandscapeRight=false;
@@ -16,6 +17,30 @@ public static class BuildProject{
   Make("CityRPScene",null);
   EditorBuildSettings.scenes=new[]{new EditorBuildSettingsScene("Assets/Scenes/SplashScreenScene.unity",true),new EditorBuildSettingsScene("Assets/Scenes/LoginScene.unity",true),new EditorBuildSettingsScene("Assets/Scenes/LobbyScene.unity",true),new EditorBuildSettingsScene("Assets/Scenes/CityRPScene.unity",true)};
   AssetDatabase.SaveAssets();
+ }
+
+ static void Generate3DPrefabs(){
+  AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+  var outDir="Assets/Resources/Generated3D";
+  System.IO.Directory.CreateDirectory(outDir);
+  string[] models={
+   "Assets/Resources/External/city/commercial_a.glb","Assets/Resources/External/city/commercial_b.glb",
+   "Assets/Resources/External/city/skyscraper_a.glb","Assets/Resources/External/city/skyscraper_b.glb","Assets/Resources/External/city/skyscraper_c.glb",
+   "Assets/Resources/External/city/suburban_a.glb","Assets/Resources/External/city/suburban_b.glb","Assets/Resources/External/city/suburban_c.glb",
+   "Assets/Resources/External/vehicles/sedan.glb","Assets/Resources/External/vehicles/suv.glb","Assets/Resources/External/vehicles/taxi.glb","Assets/Resources/External/vehicles/police.glb",
+   "Assets/Resources/External/character/citizen.glb"
+  };
+  foreach(var model in models){
+   var source=AssetDatabase.LoadAssetAtPath<GameObject>(model);
+   if(source==null){Debug.LogWarning("3D model not imported: "+model);continue;}
+   var name=System.IO.Path.GetFileNameWithoutExtension(model);
+   var instance=Object.Instantiate(source);
+   instance.name=name;
+   PrefabUtility.SaveAsPrefabAsset(instance,outDir+"/"+name+".prefab");
+   Object.DestroyImmediate(instance);
+  }
+  AssetDatabase.SaveAssets();
+  AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
  }
  static void Make(string name,CorruptStateRP.Onboarding.OnboardingScreen.Mode? mode){
   var s=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
