@@ -43,6 +43,7 @@ jobs:
           set -euo pipefail
           APK="Unity/Builds/Android/CorruptStateRP.apk"
           test -f "$APK"
+          chmod u+rw "$APK"
 
           KEYSTORE="Unity/debug.keystore"
           keytool -genkeypair -v             -keystore "$KEYSTORE"             -storepass android             -alias androiddebugkey             -keypass android             -keyalg RSA             -keysize 2048             -validity 10000             -dname "CN=Android Debug,O=Android,C=US"             >/dev/null 2>&1 || true
