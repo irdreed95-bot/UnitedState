@@ -1,0 +1,2 @@
+# Google Play compliance gate
+Before release review current Google Play rules for simulated gambling, drugs, alcohol, age ratings, UGC, chat/voice, privacy, account deletion and child safety. Do not label a build release-ready until store declarations and testing are complete.

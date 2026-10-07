@@ -1,0 +1,2 @@
+# Performance targets
+Target: 30 FPS minimum on a representative mid-range Android device. Required: chunk streaming, LOD, occlusion, pooling, batching, lightmaps, ASTC, capped dynamic lights, distance budgets. Verification requires a real-device profiler capture.

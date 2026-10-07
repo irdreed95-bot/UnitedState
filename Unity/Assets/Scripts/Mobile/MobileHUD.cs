@@ -2,96 +2,16 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
-
-namespace CorruptStateRP.Mobile
-{
-    public sealed class MobileHUD : MonoBehaviour
-    {
-        TouchControls controls;
-        PlayerController player;
-        VehicleController vehicle;
-        Text status;
-
-        void Start()
-        {
-            player=FindFirstObjectByType<PlayerController>();
-            vehicle=FindFirstObjectByType<VehicleController>();
-            controls=gameObject.AddComponent<TouchControls>();
-            controls.player=player; controls.vehicle=vehicle;
-            Build();
-        }
-
-        void Build()
-        {
-            var canvas=new GameObject("MobileHUDCanvas").AddComponent<Canvas>();
-            canvas.renderMode=RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder=200;
-            canvas.gameObject.AddComponent<CanvasScaler>();
-            canvas.gameObject.AddComponent<GraphicRaycaster>();
-            if(FindFirstObjectByType<EventSystem>()==null){
-                var es=new GameObject("EventSystem");
-                es.AddComponent<EventSystem>(); es.AddComponent<StandaloneInputModule>();
-            }
-
-            var joy=Panel(canvas.transform,new Color(0,0,0,.28f));
-            joy.anchorMin=new Vector2(.035f,.06f); joy.anchorMax=new Vector2(.25f,.30f); joy.offsetMin=joy.offsetMax=Vector2.zero;
-            var knob=Panel(joy,new Color(1,1,1,.22f));
-            knob.anchorMin=new Vector2(.27f,.27f); knob.anchorMax=new Vector2(.73f,.73f); knob.offsetMin=knob.offsetMax=Vector2.zero;
-            var drag=joy.gameObject.AddComponent<JoystickArea>();
-            drag.target=knob; drag.controls=controls;
-
-            Button(canvas.transform,"ركض",()=>controls.SetRun(true),new Vector2(.27f,.08f),new Vector2(.40f,.17f));
-            Button(canvas.transform,"مركبة",()=>ToggleVehicle(),new Vector2(.74f,.08f),new Vector2(.90f,.17f));
-            Button(canvas.transform,"محرك",()=>vehicle?.ToggleEngine(),new Vector2(.74f,.19f),new Vector2(.90f,.28f));
-            Button(canvas.transform,"دخول المدينة",()=>SceneManager.LoadScene("CityRPScene"),new Vector2(.76f,.87f),new Vector2(.97f,.96f));
-            status=Text(canvas.transform,"المواطن • جاهز",18,TextAnchor.MiddleCenter,new Vector2(.5f,.94f),new Vector2(420,50));
-        }
-
-        void ToggleVehicle()
-        {
-            if(vehicle==null||player==null)return;
-            vehicle.SetControlled(!vehicle.Controlled);
-            player.gameObject.SetActive(!vehicle.Controlled);
-            if(!vehicle.Controlled) player.transform.position=vehicle.transform.position+Vector3.right*2;
-            status.text=vehicle.Controlled?"المركبة • تحكم":"المواطن • تحكم";
-        }
-
-        RectTransform Panel(Transform parent,Color color)
-        {
-            var go=new GameObject("Panel");go.transform.SetParent(parent,false);
-            var rt=go.AddComponent<RectTransform>();go.AddComponent<Image>().color=color;return rt;
-        }
-        void Button(Transform parent,string label,UnityEngine.Events.UnityAction action,Vector2 min,Vector2 max)
-        {
-            var go=new GameObject(label);go.transform.SetParent(parent,false);
-            var rt=go.AddComponent<RectTransform>();rt.anchorMin=min;rt.anchorMax=max;rt.offsetMin=rt.offsetMax=Vector2.zero;
-            var im=go.AddComponent<Image>();im.color=new Color(.55f,.05f,.06f,.9f);
-            var b=go.AddComponent<Button>();b.targetGraphic=im;b.onClick.AddListener(action);
-            Text(go.transform,label,17,TextAnchor.MiddleCenter,Vector2.zero,new Vector2(-8,-8));
-        }
-        Text Text(Transform parent,string value,int size,TextAnchor align,Vector2 anchor,Vector2 sizeDelta)
-        {
-            var go=new GameObject("Text");go.transform.SetParent(parent,false);var t=go.AddComponent<Text>();
-            t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");t.text=value;t.fontSize=size;t.alignment=align;t.color=Color.white;
-            var rt=t.rectTransform;rt.anchorMin=rt.anchorMax=anchor;rt.anchoredPosition=Vector2.zero;rt.sizeDelta=sizeDelta;return t;
-        }
-
-        sealed class JoystickArea:MonoBehaviour,IDragHandler,IPointerDownHandler,IPointerUpHandler
-        {
-            public RectTransform target;public TouchControls controls;
-            public void OnPointerDown(PointerEventData e){OnDrag(e);}
-            public void OnDrag(PointerEventData e)
-            {
-                var rt=(RectTransform)transform;
-                if(RectTransformUtility.ScreenPointToLocalPointInRectangle(rt,e.position,e.pressEventCamera,out var p))
-                {
-                    var radius=Mathf.Min(rt.rect.width,rt.rect.height)*.35f;
-                    var v=Vector2.ClampMagnitude(p/radius,1);
-                    target.anchoredPosition=new Vector2(v.x*radius,v.y*radius);
-                    controls.SetMove(v);
-                }
-            }
-            public void OnPointerUp(PointerEventData e){target.anchoredPosition=Vector2.zero;controls.ClearMove();}
-        }
-    }
-}
+namespace CorruptStateRP.Mobile{
+public sealed class MobileHUD:MonoBehaviour{
+ TouchControls controls;PlayerController player;VehicleController vehicle;Text status;
+ void Start(){player=FindFirstObjectByType<PlayerController>();vehicle=FindFirstObjectByType<VehicleController>();controls=gameObject.AddComponent<TouchControls>();controls.player=player;controls.vehicle=vehicle;Build();}
+ void Build(){var canvas=new GameObject("MobileHUDCanvas").AddComponent<Canvas>();canvas.renderMode=RenderMode.ScreenSpaceOverlay;canvas.sortingOrder=200;canvas.gameObject.AddComponent<CanvasScaler>();canvas.gameObject.AddComponent<GraphicRaycaster>();if(FindFirstObjectByType<EventSystem>()==null){var es=new GameObject("EventSystem");es.AddComponent<EventSystem>();es.AddComponent<StandaloneInputModule>();}
+ var joy=Panel(canvas.transform,new Color(0,0,0,.28f));joy.anchorMin=new Vector2(.035f,.06f);joy.anchorMax=new Vector2(.25f,.30f);joy.offsetMin=joy.offsetMax=Vector2.zero;var knob=Panel(joy,new Color(1,1,1,.22f));knob.anchorMin=new Vector2(.27f,.27f);knob.anchorMax=new Vector2(.73f,.73f);knob.offsetMin=knob.offsetMax=Vector2.zero;var drag=joy.gameObject.AddComponent<JoystickArea>();drag.target=knob;drag.controls=controls;
+ Button(canvas.transform,"ركض",()=>controls.SetRun(true),new Vector2(.27f,.08f),new Vector2(.40f,.17f));Button(canvas.transform,"مركبة",ToggleVehicle,new Vector2(.74f,.08f),new Vector2(.90f,.17f));Button(canvas.transform,"محرك",()=>vehicle?.ToggleEngine(),new Vector2(.74f,.19f),new Vector2(.90f,.28f));Button(canvas.transform,"دخول المدينة",()=>SceneManager.LoadScene("CityRPScene"),new Vector2(.76f,.87f),new Vector2(.97f,.96f));status=Text(canvas.transform,"المواطن • جاهز",18,TextAnchor.MiddleCenter,new Vector2(.5f,.94f),new Vector2(420,50));}
+ void ToggleVehicle(){if(vehicle==null||player==null)return;vehicle.SetControlled(!vehicle.Controlled);player.enabled=!vehicle.Controlled;if(!vehicle.Controlled)player.transform.position=vehicle.transform.position+Vector3.right*2;status.text=vehicle.Controlled?"المركبة • تحكم":"المواطن • تحكم";}
+ RectTransform Panel(Transform parent,Color color){var go=new GameObject("Panel");go.transform.SetParent(parent,false);var rt=go.AddComponent<RectTransform>();go.AddComponent<Image>().color=color;return rt;}
+ void Button(Transform parent,string label,UnityEngine.Events.UnityAction action,Vector2 min,Vector2 max){var go=new GameObject(label);go.transform.SetParent(parent,false);var rt=go.AddComponent<RectTransform>();rt.anchorMin=min;rt.anchorMax=max;rt.offsetMin=rt.offsetMax=Vector2.zero;var im=go.AddComponent<Image>();im.color=new Color(.55f,.05f,.06f,.9f);var b=go.AddComponent<Button>();b.targetGraphic=im;b.onClick.AddListener(action);Text(go.transform,label,17,TextAnchor.MiddleCenter,Vector2.zero,new Vector2(-8,-8));}
+ Text Text(Transform parent,string value,int size,TextAnchor align,Vector2 anchor,Vector2 sizeDelta){var go=new GameObject("Text");go.transform.SetParent(parent,false);var t=go.AddComponent<Text>();t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");t.text=CorruptStateRP.UI.ArabicFixer.Fix(value);t.fontSize=size;t.alignment=align;t.color=Color.white;var rt=t.rectTransform;rt.anchorMin=rt.anchorMax=anchor;rt.anchoredPosition=Vector2.zero;rt.sizeDelta=sizeDelta;return t;}
+ sealed class JoystickArea:MonoBehaviour,IDragHandler,IPointerDownHandler,IPointerUpHandler{public RectTransform target;public TouchControls controls;public void OnPointerDown(PointerEventData e){OnDrag(e);}public void OnDrag(PointerEventData e){var rt=(RectTransform)transform;if(RectTransformUtility.ScreenPointToLocalPointInRectangle(rt,e.position,e.pressEventCamera,out var p)){var radius=Mathf.Min(rt.rect.width,rt.rect.height)*.35f;var v=Vector2.ClampMagnitude(p/radius,1);target.anchoredPosition=new Vector2(v.x*radius,v.y*radius);controls.SetMove(v);}}public void OnPointerUp(PointerEventData e){target.anchoredPosition=Vector2.zero;controls.ClearMove();}}
+}}

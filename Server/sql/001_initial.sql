@@ -1,0 +1,13 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE TABLE IF NOT EXISTS players(
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(), email text UNIQUE, phone text UNIQUE, password_hash text,
+ display_name text NOT NULL DEFAULT 'New Citizen', cash bigint NOT NULL DEFAULT 0 CHECK(cash>=0),
+ bank bigint NOT NULL DEFAULT 0 CHECK(bank>=0), xp bigint NOT NULL DEFAULT 0 CHECK(xp>=0),
+ level integer NOT NULL DEFAULT 1 CHECK(level>=1), faction text, faction_rank integer,
+ created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS ledger(id bigserial PRIMARY KEY,player_id uuid NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ kind text NOT NULL,amount bigint NOT NULL,balance_cash bigint NOT NULL,balance_bank bigint NOT NULL,reason text NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS audit_log(id bigserial PRIMARY KEY,actor_id uuid,action text NOT NULL,target_id uuid,payload jsonb NOT NULL DEFAULT '{}'::jsonb,created_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS ledger_player_idx ON ledger(player_id,created_at DESC);
+CREATE INDEX IF NOT EXISTS audit_created_idx ON audit_log(created_at DESC);

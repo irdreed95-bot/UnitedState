@@ -1,179 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
-
 namespace CorruptStateRP {
 public sealed class GameManager:MonoBehaviour{
-    PlayerController player;
-    VehicleController vehicle;
-    Camera mainCamera;
-    JobAndFactionSystem jobSystem;
-    Text stats,mission;
-    int money=2500,bank=10000,xp,level=1,wanted;
-    float salaryTimer;
-    float health=100,hunger=100,thirst=100;
-
-    readonly string[] missions={
-        "إكمال تسجيل المواطن","فتح حساب بنكي","استخراج رخصة القيادة","شراء أول مركبة",
-        "اختيار وظيفة","زيارة مركز الشرطة","زيارة المستشفى","زيارة المحكمة",
-        "التعرف على منطقة العصابات","إكمال أول مهمة عمل","شراء منزل أو شقة","بناء سمعة داخل المدينة"
-    };
-
-    void Awake(){
-        Application.targetFrameRate=60;
-        Screen.sleepTimeout=SleepTimeout.NeverSleep;
-        Screen.orientation=ScreenOrientation.LandscapeLeft;
-        EnsureCamera();
-    }
-
-    void Start(){
-        // Build the player/camera first. If an imported 3D asset fails on Android,
-        // the game must still render instead of ending on a black screen.
-        BuildPlayer();
-        BuildVehicle();
-        jobSystem=new GameObject("JobAndFactionSystem").AddComponent<JobAndFactionSystem>();
-        BuildHUD();
-        BuildWorldSafe();
-        BuildTrafficSafe();
-        HUD();
-    }
-
-    void BuildWorldSafe(){
-        try{
-            var w=new GameObject("World");
-            w.AddComponent<WorldBuilder>().Build();
-        }catch(System.Exception e){
-            Debug.LogError("World build failed: "+e);
-            BuildFallbackWorld();
-        }
-    }
-
-    void BuildTrafficSafe(){
-        try{
-            new GameObject("Traffic").AddComponent<TrafficManager>();
-        }catch(System.Exception e){
-            Debug.LogError("Traffic build failed: "+e);
-        }
-    }
-
-    void BuildFallbackWorld(){
-        var ground=GameObject.CreatePrimitive(PrimitiveType.Plane);
-        ground.name="FallbackGround";
-        ground.transform.localScale=new Vector3(60,1,60);
-        var mat=new Material(Shader.Find("Standard"));
-        mat.color=new Color(.12f,.16f,.20f);
-        ground.GetComponent<Renderer>().material=mat;
-
-        var sun=new GameObject("FallbackSun").AddComponent<Light>();
-        sun.type=LightType.Directional;
-        sun.intensity=1.5f;
-        sun.transform.rotation=Quaternion.Euler(50,-30,0);
-
-        for(int x=-4;x<=4;x++){
-            for(int z=-4;z<=4;z++){
-                if((x+z)%2!=0) continue;
-                var b=GameObject.CreatePrimitive(PrimitiveType.Cube);
-                b.name="FallbackBuilding";
-                b.transform.position=new Vector3(x*28,4,z*28);
-                b.transform.localScale=new Vector3(16,8+(Mathf.Abs(x)+Mathf.Abs(z))*1.5f,16);
-                b.GetComponent<Renderer>().material=mat;
-            }
-        }
-    }
-
-    void EnsureCamera(){
-        var existing=Camera.main;
-        if(existing!=null){
-            mainCamera=existing;
-        }else{
-            var go=new GameObject("Main Camera");
-            mainCamera=go.AddComponent<Camera>();
-            go.AddComponent<AudioListener>();
-        }
-        mainCamera.enabled=true;
-        mainCamera.clearFlags=CameraClearFlags.SolidColor;
-        mainCamera.backgroundColor=new Color(.035f,.055f,.075f);
-        mainCamera.fieldOfView=68f;
-        mainCamera.nearClipPlane=.05f;
-        mainCamera.farClipPlane=1500f;
-        mainCamera.tag="MainCamera";
-    }
-
-    void BuildPlayer(){
-        var go=new GameObject("Player");
-        go.transform.position=new Vector3(0,1.2f,28);
-        go.AddComponent<CharacterController>();
-        player=go.AddComponent<PlayerController>();
-        mainCamera.transform.SetParent(go.transform,false);
-        mainCamera.transform.localPosition=new Vector3(0,6.5f,10.5f);
-        mainCamera.transform.localRotation=Quaternion.identity;
-        mainCamera.transform.LookAt(go.transform.position+Vector3.up*1.1f);
-        mainCamera.enabled=true;
-    }
-
-    void BuildVehicle(){
-        var go=new GameObject("PlayerVehicle");
-        go.transform.position=new Vector3(0,1,12);
-        vehicle=go.AddComponent<VehicleController>();
-        vehicle.Initialize();
-    }
-
-    void Update(){
-        salaryTimer+=Time.deltaTime;
-        if(jobSystem!=null && jobSystem.Salary>0 && salaryTimer>=300f){ money+=jobSystem.CollectSalary(); salaryTimer=0f; }
-        hunger=Mathf.Max(0,hunger-Time.deltaTime*.01f);
-        thirst=Mathf.Max(0,thirst-Time.deltaTime*.018f);
-        if(Input.GetKeyDown(KeyCode.F))ToggleVehicle();
-        if(Input.GetKeyDown(KeyCode.R))vehicle.ToggleEngine();
-        if(mainCamera!=null && player!=null && !vehicle.Controlled)
-            mainCamera.transform.LookAt(player.transform.position+Vector3.up*1.1f);
-        HUD();
-    }
-
-    void FixedUpdate(){
-        var i=new Vector2(Input.GetAxis("Horizontal"),Input.GetAxis("Vertical"));
-        if(player!=null && player.gameObject.activeSelf)
-            player.SetMoveInput(i,Input.GetKey(KeyCode.LeftShift));
-        if(vehicle!=null && vehicle.Controlled)vehicle.Drive(i);
-    }
-
-    void ToggleVehicle(){
-        if(vehicle==null||player==null)return;
-        vehicle.SetControlled(!vehicle.Controlled);
-        player.gameObject.SetActive(!vehicle.Controlled);
-        if(!vehicle.Controlled)player.transform.position=vehicle.transform.position+Vector3.right*2;
-    }
-
-    void BuildHUD(){
-        var c=new GameObject("HUD").AddComponent<Canvas>();
-        c.renderMode=RenderMode.ScreenSpaceOverlay;
-        c.sortingOrder=100;
-
-        var p=new GameObject("Stats").AddComponent<Image>();
-        p.transform.SetParent(c.transform,false);
-        var r=p.rectTransform;
-        r.anchorMin=new Vector2(0,1); r.anchorMax=new Vector2(0,1); r.pivot=new Vector2(0,1);
-        r.anchoredPosition=new Vector2(18,-18); r.sizeDelta=new Vector2(430,145);
-        p.color=new Color(.05f,.07f,.09f,.88f);
-
-        stats=Text(p.transform,new Vector2(16,-12),new Vector2(400,95),18);
-        mission=Text(p.transform,new Vector2(16,-108),new Vector2(400,30),15);
-    }
-
-    Text Text(Transform p,Vector2 pos,Vector2 size,int fs){
-        var g=new GameObject("Text");
-        g.transform.SetParent(p,false);
-        var t=g.AddComponent<Text>();
-        t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        t.fontSize=fs; t.color=Color.white;
-        t.alignment=TextAnchor.UpperLeft;
-        t.rectTransform.anchoredPosition=pos;
-        t.rectTransform.sizeDelta=size;
-        return t;
-    }
-
-    void HUD(){
-        if(stats==null||mission==null)return;
-        stats.text=$"CORRUPT STATE RP\n$ {money} | بنك {bank} | LV {level} | XP {xp}\n❤️ {health:0}%  🍖 {hunger:0}%  💧 {thirst:0}%  ⭐ {wanted}\nالوظيفة: {(jobSystem!=null?jobSystem.CurrentJob:"عاطل")} | الفصيل: {(jobSystem!=null?jobSystem.CurrentFaction:"مدني")}";
-        mission.text=$"المهمة: {missions[Mathf.Abs(xp)%missions.Length]}";
-    }
+ PlayerController player; VehicleController vehicle; Camera mainCamera; JobAndFactionSystem jobSystem; Text stats,mission;
+ int money=0,bank=0,xp,level=1,wanted; float salaryTimer; float health=100,hunger=100,thirst=100;
+ readonly string[] missions={"إكمال تسجيل المواطن","فتح حساب بنكي","استخراج رخصة القيادة","شراء أول مركبة","اختيار وظيفة","زيارة مركز الشرطة","زيارة المستشفى","زيارة المحكمة","التعرف على منطقة العصابات","إكمال أول مهمة عمل"};
+ void Awake(){Application.targetFrameRate=60;Screen.sleepTimeout=SleepTimeout.NeverSleep;Screen.orientation=ScreenOrientation.LandscapeLeft;EnsureCamera();}
+ void Start(){BuildPlayer();BuildVehicle();jobSystem=new GameObject("JobAndFactionSystem").AddComponent<JobAndFactionSystem>();BuildHUD();BuildWorldSafe();BuildTrafficSafe();HUD();}
+ void BuildWorldSafe(){try{var w=new GameObject("World");w.AddComponent<WorldBuilder>().Build();}catch(System.Exception e){Debug.LogError("World build failed: "+e);BuildFallbackWorld();}}
+ void BuildTrafficSafe(){try{new GameObject("Traffic").AddComponent<TrafficManager>();}catch(System.Exception e){Debug.LogError("Traffic build failed: "+e);}}
+ void BuildFallbackWorld(){var ground=GameObject.CreatePrimitive(PrimitiveType.Plane);ground.name="FallbackGround";ground.transform.localScale=new Vector3(60,1,60);var mat=new Material(Shader.Find("Standard"));mat.color=new Color(.12f,.16f,.20f);ground.GetComponent<Renderer>().material=mat;var sun=new GameObject("FallbackSun").AddComponent<Light>();sun.type=LightType.Directional;sun.intensity=1.5f;sun.transform.rotation=Quaternion.Euler(50,-30,0);for(int x=-4;x<=4;x++)for(int z=-4;z<=4;z++){if((x+z)%2!=0)continue;var b=GameObject.CreatePrimitive(PrimitiveType.Cube);b.name="FallbackBuilding";b.transform.position=new Vector3(x*28,4,z*28);b.transform.localScale=new Vector3(16,8+(Mathf.Abs(x)+Mathf.Abs(z))*1.5f,16);b.GetComponent<Renderer>().material=mat;}}
+ void EnsureCamera(){mainCamera=Camera.main;if(mainCamera==null){var go=new GameObject("Main Camera");mainCamera=go.AddComponent<Camera>();go.AddComponent<AudioListener>();}mainCamera.enabled=true;mainCamera.clearFlags=CameraClearFlags.SolidColor;mainCamera.backgroundColor=new Color(.035f,.055f,.075f);mainCamera.fieldOfView=68;mainCamera.nearClipPlane=.05f;mainCamera.farClipPlane=1500;mainCamera.tag="MainCamera";}
+ void BuildPlayer(){var go=new GameObject("Player");go.transform.position=new Vector3(0,1.2f,28);go.AddComponent<CharacterController>();player=go.AddComponent<PlayerController>();var follow=mainCamera.GetComponent<ThirdPersonCameraFollow>()??mainCamera.gameObject.AddComponent<ThirdPersonCameraFollow>();follow.SetTarget(go.transform);}
+ void BuildVehicle(){var go=new GameObject("PlayerVehicle");go.transform.position=new Vector3(0,1,12);vehicle=go.AddComponent<VehicleController>();vehicle.Initialize();}
+ void Update(){salaryTimer+=Time.deltaTime;if(jobSystem!=null&&jobSystem.Salary>0&&salaryTimer>=300f){money+=jobSystem.CollectSalary();salaryTimer=0;}hunger=Mathf.Max(0,hunger-Time.deltaTime*.01f);thirst=Mathf.Max(0,thirst-Time.deltaTime*.018f);if(Input.GetKeyDown(KeyCode.F))ToggleVehicle();if(Input.GetKeyDown(KeyCode.R)&&vehicle!=null)vehicle.ToggleEngine();HUD();}
+ void FixedUpdate(){var i=new Vector2(Input.GetAxis("Horizontal"),Input.GetAxis("Vertical"));if(player!=null&&player.gameObject.activeSelf)player.SetMoveInput(i,Input.GetKey(KeyCode.LeftShift));if(vehicle!=null&&vehicle.Controlled)vehicle.Drive(i);}
+ void ToggleVehicle(){if(vehicle==null||player==null)return;vehicle.SetControlled(!vehicle.Controlled);if(!vehicle.Controlled)player.transform.position=vehicle.transform.position+Vector3.right*2;player.gameObject.SetActive(true);}
+ void BuildHUD(){var c=new GameObject("HUD").AddComponent<Canvas>();c.renderMode=RenderMode.ScreenSpaceOverlay;c.sortingOrder=100;var p=new GameObject("Stats").AddComponent<Image>();p.transform.SetParent(c.transform,false);var r=p.rectTransform;r.anchorMin=new Vector2(0,1);r.anchorMax=new Vector2(0,1);r.pivot=new Vector2(0,1);r.anchoredPosition=new Vector2(18,-18);r.sizeDelta=new Vector2(430,145);p.color=new Color(.05f,.07f,.09f,.88f);stats=Text(p.transform,new Vector2(16,-12),new Vector2(400,95),18);mission=Text(p.transform,new Vector2(16,-108),new Vector2(400,30),15);}
+ Text Text(Transform p,Vector2 pos,Vector2 size,int fs){var g=new GameObject("Text");g.transform.SetParent(p,false);var t=g.AddComponent<Text>();t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");t.fontSize=fs;t.color=Color.white;t.alignment=TextAnchor.UpperLeft;t.rectTransform.anchoredPosition=pos;t.rectTransform.sizeDelta=size;return t;}
+ void HUD(){if(stats==null||mission==null)return;stats.text=$"CORRUPT STATE RP\n$ {money} | بنك {bank} | LV {level} | XP {xp}\n❤️ {health:0}%  🍖 {hunger:0}%  💧 {thirst:0}%  ⭐ {wanted}\nالوظيفة: {(jobSystem!=null?jobSystem.CurrentJob:"عاطل")} | الفصيل: {(jobSystem!=null?jobSystem.CurrentFaction:"مدني")}";mission.text=$"المهمة: {missions[Mathf.Abs(xp)%missions.Length]}";}
 }}
