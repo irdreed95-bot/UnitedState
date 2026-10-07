@@ -8,7 +8,7 @@ public sealed class PlayerController:MonoBehaviour{
  void Awake(){
   cc=GetComponent<CharacterController>();
   cc.height=1.8f; cc.radius=.32f; cc.center=new Vector3(0,.9f,0);
-  var v=Resources.Load<GameObject>("External/character/citizen");
+  var v=Resources.Load<GameObject>("Generated3D/citizen");
   if(v)Instantiate(v,transform);
   else BuildFallbackCitizen();
  }
