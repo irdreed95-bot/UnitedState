@@ -6,7 +6,7 @@ public sealed class VehicleController:MonoBehaviour{
  public bool LightsOn{get;private set;} public bool HazardsOn{get;private set;} public bool SeatbeltOn{get;private set;} public bool WipersOn{get;private set;}
  public bool FrontLeftDoorOpen{get;private set;}
  Rigidbody rb;
- public void Initialize(){rb=gameObject.AddComponent<Rigidbody>();rb.mass=1100;rb.centerOfMass=new(0,-.4f,0);var c=gameObject.AddComponent<BoxCollider>();c.size=new(1.9f,.9f,4);var p=Resources.Load<GameObject>("External/vehicles/sedan");if(p)Instantiate(p,transform);else{var b=GameObject.CreatePrimitive(PrimitiveType.Cube);b.transform.SetParent(transform,false);b.transform.localScale=new(1.9f,.6f,4);b.transform.localPosition=Vector3.up*.6f;}}
+ public void Initialize(){rb=gameObject.AddComponent<Rigidbody>();rb.mass=1100;rb.centerOfMass=new(0,-.4f,0);var c=gameObject.AddComponent<BoxCollider>();c.size=new(1.9f,.9f,4);var p=Resources.Load<GameObject>("Generated3D/sedan");if(p)Instantiate(p,transform);else{var b=GameObject.CreatePrimitive(PrimitiveType.Cube);b.transform.SetParent(transform,false);b.transform.localScale=new(1.9f,.6f,4);b.transform.localPosition=Vector3.up*.6f;}}
  public void SetControlled(bool v){Controlled=v;if(!v&&rb)rb.linearVelocity=Vector3.zero;}
  public void ToggleEngine(){EngineOn=!EngineOn;if(!EngineOn&&rb)rb.linearVelocity=Vector3.zero;}
  public void ToggleLights(){LightsOn=!LightsOn;}
