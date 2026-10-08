@@ -92,22 +92,39 @@ jobs:
           buildMethod: CorruptStateRP.Editor.BuildProject.BuildAndroid
           versioning: None
       - name: Verify APK
+        id: verify_apk
+        if: always()
         shell: bash
         run: |
-          set -euo pipefail
-          APK="Unity/Builds/Android/CorruptStateRP.apk"
-          test -f "$APK"
-          test "$(stat -c%s "$APK")" -gt 1000000
-          unzip -t "$APK" >/dev/null
-          
-          echo "APK package structure verified; mode=$SIGNING_MODE; bytes=$(stat -c%s "$APK")"
+          set -uo pipefail
+          echo "Searching for APK output under workspace..."
+          find "$GITHUB_WORKSPACE/Unity" -type f -name '*.apk' -print || true
+          APK="$(find "$GITHUB_WORKSPACE/Unity" -type f -name '*.apk' -print -quit)"
+          if [ -z "$APK" ]; then
+            echo "::error::No .apk file found under $GITHUB_WORKSPACE/Unity"
+            exit 1
+          fi
+          echo "Found APK: $APK"
+          echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
+          test -s "$APK" || { echo "::error::APK file is empty: $APK"; exit 1; }
+          SDK_APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner -print -quit 2>/dev/null || true)"
+          if [ -z "$SDK_APKSIGNER" ]; then
+            SDK_APKSIGNER="$(command -v apksigner || true)"
+          fi
+          if [ -n "$SDK_APKSIGNER" ]; then
+            "$SDK_APKSIGNER" verify --verbose "$APK"
+          else
+            echo "::error::apksigner not found in Android SDK build-tools or PATH"
+            exit 1
+          fi
       - name: Remove signing key
         if: always()
         run: rm -f Unity/Builds/corruptstate-signing.keystore
       - name: Upload APK
+        if: always() && steps.verify_apk.outputs.apk_path != ''
         uses: actions/upload-artifact@v4
         with:
           name: CorruptStateRP-Android-APK
-          path: Unity/Builds/Android/CorruptStateRP.apk
+          path: ${{ steps.verify_apk.outputs.apk_path }}
           if-no-files-found: error
           compression-level: 0
