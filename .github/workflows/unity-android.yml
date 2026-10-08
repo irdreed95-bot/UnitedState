@@ -37,11 +37,13 @@ jobs:
             test -n "${ANDROID_KEY_PASSWORD_SECRET:-}" || { echo "::error::Missing GitHub Secret ANDROID_KEY_PASSWORD"; exit 1; }
             printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KS"
             test -s "$KS"
+            echo "ANDROID_KEYSTORE_BASE64=$(base64 -w0 "$KS")" >> "$GITHUB_ENV"
             keytool -list -keystore "$KS" -storepass "$ANDROID_KEYSTORE_PASSWORD_SECRET" -alias "$ANDROID_KEY_ALIAS_SECRET" >/dev/null
             echo "SIGNING_MODE=release-secret" >> "$GITHUB_ENV"
           else
             keytool -genkeypair -noprompt -keystore "$KS" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=CI Debug,O=Corrupt State RP,C=US"
             echo "SIGNING_MODE=ci-debug-fallback" >> "$GITHUB_ENV"
+            echo "ANDROID_KEYSTORE_BASE64=$(base64 -w0 "$KS")" >> "$GITHUB_ENV"
             echo "::warning::Android release signing secrets are absent. This run produces a debug-signed test AAB, not a production release."
           fi
       - name: Build Unity Android AAB
