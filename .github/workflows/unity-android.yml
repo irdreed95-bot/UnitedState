@@ -59,7 +59,8 @@ jobs:
           versioning: None
       - name: Remove temporary signing key
         if: always()
-        run: rm -f Unity/Builds/corruptstate-signing.keystore\n      - name: Verify AAB
+        run: rm -f Unity/Builds/corruptstate-signing.keystore
+      - name: Verify AAB
         shell: bash
         run: |
           set -euo pipefail
