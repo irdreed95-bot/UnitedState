@@ -1,25 +1,19 @@
-using System;
-using System.Collections;
-using UnityEngine;
-using UnityEngine.Networking;
-namespace CorruptStateRP.Auth{
-public sealed class AuthClient:MonoBehaviour{
- [SerializeField] string baseUrl="";
- [SerializeField] string loginPath="/auth/login";
- [SerializeField] string guestPath="/auth/guest";
- ISessionStore store;
- public SessionTokens Session{get;private set;}
- public bool HasSession=>Session!=null&&Session.IsUsable;
- public event Action<bool> SessionChanged;
- void Awake(){store=new PlayerPrefsSessionStore();Session=store.Load();if(string.IsNullOrWhiteSpace(baseUrl))baseUrl=PlayerPrefs.GetString("CSRP_API_URL","");}
- public void Configure(string url){baseUrl=(url??string.Empty).TrimEnd('/');PlayerPrefs.SetString("CSRP_API_URL",baseUrl);PlayerPrefs.Save();}
- public IEnumerator Guest(Action<bool,string> completed=null){yield return PostJson(guestPath,"{}",json=>{Session=JsonUtility.FromJson<SessionTokens>(json);store.Save(Session);SessionChanged?.Invoke(true);completed?.Invoke(true,null);},err=>completed?.Invoke(false,err));}
- public IEnumerator Login(string identifier,string password,Action<bool,string> completed=null){if(string.IsNullOrWhiteSpace(baseUrl)){yield return Guest(completed);yield break;}yield return PostJson(loginPath,JsonUtility.ToJson(new LoginRequest{identifier=identifier,password=password}),json=>{Session=JsonUtility.FromJson<SessionTokens>(json);store.Save(Session);SessionChanged?.Invoke(true);completed?.Invoke(true,null);},err=>completed?.Invoke(false,err));}
- public IEnumerator RestoreSession(Action<bool> completed=null){if(!HasSession){completed?.Invoke(false);yield break;}if(!Session.AccessTokenExpired){SessionChanged?.Invoke(true);completed?.Invoke(true);yield break;}completed?.Invoke(false);}
+using System;using System.Collections;using UnityEngine;using UnityEngine.Networking;
+namespace CorruptStateRP.Auth {
+public sealed class AuthClient:MonoBehaviour {
+ string baseUrl="";ISessionStore store;public SessionTokens Session{get;private set;}public bool HasSession=>Session!=null&&Session.IsUsable;public event Action<bool> SessionChanged;
+ void Awake(){store=new PlayerPrefsSessionStore();Session=store.Load();baseUrl=PlayerPrefs.GetString("CSRP_API_URL",baseUrl);}
+ public void Configure(string url){baseUrl=(url??"").Trim().TrimEnd('/');PlayerPrefs.SetString("CSRP_API_URL",baseUrl);PlayerPrefs.Save();}
+ bool Ready()=>!string.IsNullOrWhiteSpace(baseUrl);
+ public IEnumerator Guest(Action<bool,string> done){if(!Ready()){done?.Invoke(false,"Backend URL is not configured.");yield break;}yield return Send("/auth/guest","{}",false,(json,err)=>{if(err!=null){done?.Invoke(false,err);return;}SaveSession(json,done);});}
+ public IEnumerator Register(string identifier,string password,Action<bool,string> done){if(!Ready()){done?.Invoke(false,"Backend URL is not configured.");yield break;}if(string.IsNullOrWhiteSpace(identifier)||string.IsNullOrEmpty(password)||password.Length<8){done?.Invoke(false,"Enter an email/phone and a password of at least 8 characters.");yield break;}yield return Send("/auth/register",JsonUtility.ToJson(new Credentials{identifier=identifier,password=password}),false,(json,err)=>{if(err!=null){done?.Invoke(false,err);return;}SaveSession(json,done);});}
+ public IEnumerator Login(string identifier,string password,Action<bool,string> done){if(!Ready()){done?.Invoke(false,"Backend URL is not configured. Set it in the login screen.");yield break;}if(string.IsNullOrWhiteSpace(identifier)||string.IsNullOrEmpty(password)){done?.Invoke(false,"Credentials required.");yield break;}yield return Send("/auth/login",JsonUtility.ToJson(new Credentials{identifier=identifier,password=password}),false,(json,err)=>{if(err!=null){done?.Invoke(false,err);return;}SaveSession(json,done);});}
+ void SaveSession(string json,Action<bool,string> done){var r=JsonUtility.FromJson<AuthResponse>(json);if(r==null||string.IsNullOrEmpty(r.accessToken)||string.IsNullOrEmpty(r.refreshToken)){done?.Invoke(false,"Invalid auth response.");return;}Session=new SessionTokens{accessToken=r.accessToken,refreshToken=r.refreshToken,expiresAtUnix=r.expiresAtUnix};store.Save(Session);SessionChanged?.Invoke(true);done?.Invoke(true,null);}
+ public IEnumerator RestoreSession(Action<bool,string> done){if(!HasSession){done?.Invoke(false,"No session.");yield break;}if(!Session.AccessTokenExpired){done?.Invoke(true,null);yield break;}if(string.IsNullOrEmpty(Session.refreshToken)){Logout();done?.Invoke(false,"Refresh token missing.");yield break;}yield return Send("/auth/refresh",JsonUtility.ToJson(new RefreshRequest{refreshToken=Session.refreshToken}),false,(json,err)=>{if(err!=null){Logout();done?.Invoke(false,err);return;}SaveSession(json,done);});}
+ public IEnumerator GetMe(Action<string,string> done){if(!Ready()||!HasSession){done?.Invoke(null,"Server URL or session missing.");yield break;}if(Session.AccessTokenExpired){bool refreshed=false;yield return RestoreSession((ok,err)=>refreshed=ok);if(!refreshed){done?.Invoke(null,"Session refresh failed.");yield break;}}yield return Send("/me",null,true,done);}
+ public IEnumerator CompleteMission(int id,Action<string,string> done){if(id<1||id>10){done?.Invoke(null,"Invalid mission id.");yield break;}yield return Send("/missions/"+id+"/complete","{}",true,done);}
+ public IEnumerator ClaimSalary(Action<string,string> done){yield return Send("/jobs/salary/claim","{}",true,done);}
+ IEnumerator Send(string path,string body,bool auth,Action<string,string> done){if(!Ready()){done?.Invoke(null,"Backend URL is not configured.");yield break;}using(var r=new UnityWebRequest(baseUrl+path,body==null?"GET":"POST")){if(body!=null)r.uploadHandler=new UploadHandlerRaw(System.Text.Encoding.UTF8.GetBytes(body));r.downloadHandler=new DownloadHandlerBuffer();r.SetRequestHeader("Content-Type","application/json");if(auth&&HasSession)r.SetRequestHeader("Authorization","Bearer "+Session.accessToken);r.timeout=20;yield return r.SendWebRequest();if(r.result==UnityWebRequest.Result.Success)done?.Invoke(r.downloadHandler.text,null);else done?.Invoke(null,r.downloadHandler.text+" "+r.error);}}
  public void Logout(){store.Clear();Session=null;SessionChanged?.Invoke(false);}
- IEnumerator PostJson(string path,string body,Action<string> success,Action<string> failure){
-  if(string.IsNullOrWhiteSpace(baseUrl)){failure?.Invoke("Backend URL is not configured.");yield break;}
-  using(var req=new UnityWebRequest(baseUrl+path,"POST")){req.uploadHandler=new UploadHandlerRaw(System.Text.Encoding.UTF8.GetBytes(body));req.downloadHandler=new DownloadHandlerBuffer();req.SetRequestHeader("Content-Type","application/json");req.timeout=15;yield return req.SendWebRequest();if(req.result==UnityWebRequest.Result.Success)success?.Invoke(req.downloadHandler.text);else failure?.Invoke(req.error);}
- }
- [Serializable]struct LoginRequest{public string identifier;public string password;}
+ [Serializable]class Credentials{public string identifier;public string password;}[Serializable]class RefreshRequest{public string refreshToken;}[Serializable]class AuthResponse{public string accessToken;public string refreshToken;public long expiresAtUnix;}
 }}
