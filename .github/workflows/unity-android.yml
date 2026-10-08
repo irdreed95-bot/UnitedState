@@ -27,8 +27,10 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD_SECRET: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS_SECRET: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD_SECRET: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        id: signing
         run: |
           set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/Unity/Builds"
           KS="$GITHUB_WORKSPACE/Unity/Builds/corruptstate-signing.keystore"
           if [ -n "${ANDROID_KEYSTORE_BASE64_SECRET:-}" ]; then
             test -n "${ANDROID_KEYSTORE_PASSWORD_SECRET:-}" || { echo "::error::Missing GitHub Secret ANDROID_KEYSTORE_PASSWORD"; exit 1; }
@@ -37,25 +39,38 @@ jobs:
             printf '%s' "$ANDROID_KEYSTORE_BASE64_SECRET" | base64 --decode > "$KS"
             test -s "$KS"
             keytool -list -keystore "$KS" -storepass "$ANDROID_KEYSTORE_PASSWORD_SECRET" -alias "$ANDROID_KEY_ALIAS_SECRET" >/dev/null
+            echo "SIGNING_MODE=release-secret" >> "$GITHUB_ENV"
             {
-              echo "SIGNING_MODE=release-secret"
-              echo "ANDROID_BUILD_KEYSTORE_BASE64=$ANDROID_KEYSTORE_BASE64_SECRET"
-              echo "ANDROID_BUILD_KEYSTORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD_SECRET"
-              echo "ANDROID_BUILD_KEY_ALIAS=$ANDROID_KEY_ALIAS_SECRET"
-              echo "ANDROID_BUILD_KEY_PASSWORD=$ANDROID_KEY_PASSWORD_SECRET"
-            } >> "$GITHUB_ENV"
+              echo "keystore_base64<<EOF"
+              printf '%s\n' "$ANDROID_KEYSTORE_BASE64_SECRET"
+              echo "EOF"
+              echo "keystore_password<<EOF"
+              printf '%s\n' "$ANDROID_KEYSTORE_PASSWORD_SECRET"
+              echo "EOF"
+              echo "key_alias<<EOF"
+              printf '%s\n' "$ANDROID_KEY_ALIAS_SECRET"
+              echo "EOF"
+              echo "key_password<<EOF"
+              printf '%s\n' "$ANDROID_KEY_PASSWORD_SECRET"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
           else
             keytool -genkeypair -noprompt -keystore "$KS" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=CI Debug,O=Corrupt State RP,C=US"
+            echo "SIGNING_MODE=ci-debug-fallback" >> "$GITHUB_ENV"
             {
-              echo "SIGNING_MODE=ci-debug-fallback"
-              echo "ANDROID_BUILD_KEYSTORE_PASSWORD=android"
-              echo "ANDROID_BUILD_KEY_ALIAS=androiddebugkey"
-              echo "ANDROID_BUILD_KEY_PASSWORD=android"
-              echo "ANDROID_BUILD_KEYSTORE_BASE64<<EOF"
+              echo "keystore_base64<<EOF"
               base64 -w0 "$KS"
-              echo
               echo "EOF"
-            } >> "$GITHUB_ENV"
+              echo "keystore_password<<EOF"
+              echo "android"
+              echo "EOF"
+              echo "key_alias<<EOF"
+              echo "androiddebugkey"
+              echo "EOF"
+              echo "key_password<<EOF"
+              echo "android"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
             echo "::warning::Android release signing secrets are absent. This run produces a debug-signed test AAB, not a production release."
           fi
       - name: Build Unity Android AAB
@@ -70,10 +85,10 @@ jobs:
           targetPlatform: Android
           androidExportType: androidAppBundle
           androidKeystoreName: corruptstate-signing.keystore
-          androidKeystoreBase64: ${{ env.ANDROID_BUILD_KEYSTORE_BASE64 }}
-          androidKeystorePass: ${{ env.ANDROID_BUILD_KEYSTORE_PASSWORD }}
-          androidKeyaliasName: ${{ env.ANDROID_BUILD_KEY_ALIAS }}
-          androidKeyaliasPass: ${{ env.ANDROID_BUILD_KEY_PASSWORD }}
+          androidKeystoreBase64: ${{ steps.signing.outputs.keystore_base64 }}
+          androidKeystorePass: ${{ steps.signing.outputs.keystore_password }}
+          androidKeyaliasName: ${{ steps.signing.outputs.key_alias }}
+          androidKeyaliasPass: ${{ steps.signing.outputs.key_password }}
           buildMethod: CorruptStateRP.Editor.BuildProject.BuildAndroid
           versioning: None
       - name: Verify AAB
