@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using CorruptStateRP.Auth;
 
 namespace CorruptStateRP.Citizens
 {
@@ -34,20 +35,32 @@ namespace CorruptStateRP.Citizens
         RectTransform listRoot;
         RectTransform rootPanel;
         int selectedMission;
+        AuthClient auth;
 
         public Mission[] Missions => missions;
 
         void Awake()
         {
             DontDestroyOnLoad(gameObject);
+            auth = FindFirstObjectByType<AuthClient>();
             BuildUI();
         }
 
-        public void CompleteMission(int index)
+        void CompleteSelectedMission()
         {
-            if (index < 0 || index >= missions.Length) return;
-            missions[index].completed = true;
-            Refresh();
+            if (selectedMission < 0 || selectedMission >= missions.Length) return;
+            auth = FindFirstObjectByType<AuthClient>();
+            if (auth == null || !auth.HasSession)
+            {
+                Debug.LogWarning("Mission completion requires an authenticated server session.");
+                return;
+            }
+            StartCoroutine(auth.CompleteMission(selectedMission + 1, (json, error) =>
+            {
+                if (error != null) { Debug.LogWarning("Server rejected mission completion: " + error); return; }
+                missions[selectedMission].completed = true;
+                Refresh();
+            }));
         }
 
         void BuildUI()
@@ -82,6 +95,11 @@ namespace CorruptStateRP.Citizens
             layout.childControlWidth = true;
             layout.childControlHeight = false;
             listRoot = sr;
+
+            var complete = Button(root, "إرسال إكمال المهمة إلى الخادم", () => CompleteSelectedMission());
+            complete.GetComponent<RectTransform>().anchorMin = new Vector2(.04f,.025f);
+            complete.GetComponent<RectTransform>().anchorMax = new Vector2(.48f,.085f);
+            complete.GetComponent<RectTransform>().offsetMin = complete.GetComponent<RectTransform>().offsetMax = Vector2.zero;
 
             var close = Button(root, "إغلاق", () => root.gameObject.SetActive(false));
             close.GetComponent<RectTransform>().anchorMin = new Vector2(.68f,.025f);
