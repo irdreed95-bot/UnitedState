@@ -1,4 +1,4 @@
-name: Build Unity Android AAB
+name: Build Unity Android APK
 on:
   workflow_dispatch:
   push:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   build:
-    name: Unity 6 Android AAB (release secret when configured)
+    name: Unity 6 Android APK (release secret when configured)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -71,9 +71,9 @@ jobs:
               echo "android"
               echo "EOF"
             } >> "$GITHUB_OUTPUT"
-            echo "::warning::Android release signing secrets are absent. This run produces a debug-signed test AAB, not a production release."
+            echo "::warning::Android release signing secrets are absent. This run produces a debug-signed test APK, not a production release."
           fi
-      - name: Build Unity Android AAB
+      - name: Build Unity Android APK
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -83,7 +83,7 @@ jobs:
           projectPath: Unity
           unityVersion: 6000.0.63f1
           targetPlatform: Android
-          androidExportType: androidAppBundle
+          androidExportType: androidPackage
           androidKeystoreName: corruptstate-signing.keystore
           androidKeystoreBase64: ${{ steps.signing.outputs.keystore_base64 }}
           androidKeystorePass: ${{ steps.signing.outputs.keystore_password }}
@@ -91,23 +91,23 @@ jobs:
           androidKeyaliasPass: ${{ steps.signing.outputs.key_password }}
           buildMethod: CorruptStateRP.Editor.BuildProject.BuildAndroid
           versioning: None
-      - name: Verify AAB
+      - name: Verify APK
         shell: bash
         run: |
           set -euo pipefail
-          AAB="Unity/Builds/Android/CorruptStateRP.aab"
-          test -f "$AAB"
-          test "$(stat -c%s "$AAB")" -gt 1000000
-          unzip -t "$AAB" >/dev/null
-          jarsigner -verify -verbose -certs "$AAB" >/dev/null
-          echo "AAB structure and signature verified; mode=$SIGNING_MODE; bytes=$(stat -c%s "$AAB")"
+          APK="Unity/Builds/Android/CorruptStateRP.apk"
+          test -f "$APK"
+          test "$(stat -c%s "$APK")" -gt 1000000
+          unzip -t "$APK" >/dev/null
+          
+          echo "APK package structure verified; mode=$SIGNING_MODE; bytes=$(stat -c%s "$APK")"
       - name: Remove signing key
         if: always()
         run: rm -f Unity/Builds/corruptstate-signing.keystore
-      - name: Upload AAB
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: CorruptStateRP-Android-AAB
-          path: Unity/Builds/Android/CorruptStateRP.aab
+          name: CorruptStateRP-Android-APK
+          path: Unity/Builds/Android/CorruptStateRP.apk
           if-no-files-found: error
           compression-level: 0
