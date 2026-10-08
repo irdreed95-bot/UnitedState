@@ -28,7 +28,8 @@ jobs:
           ANDROID_KEY_PASSWORD_SECRET: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          KS="$RUNNER_TEMP/corruptstate-signing.keystore"
+          mkdir -p "$GITHUB_WORKSPACE/Unity/Builds"
+          KS="$GITHUB_WORKSPACE/Unity/Builds/corruptstate-signing.keystore"
           if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ]; then
             printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KS"
             test -s "$KS"
@@ -43,7 +44,7 @@ jobs:
             echo "ANDROID_KEY_ALIAS=androiddebugkey" >> "$GITHUB_ENV"
             echo "ANDROID_KEY_PASSWORD=android" >> "$GITHUB_ENV"
           fi
-          echo "ANDROID_KEYSTORE_PATH=$KS" >> "$GITHUB_ENV"
+          echo "ANDROID_KEYSTORE_PATH=/github/workspace/Unity/Builds/corruptstate-signing.keystore" >> "$GITHUB_ENV"
       - name: Build Unity Release AAB
         uses: game-ci/unity-builder@v4
         env:
@@ -56,7 +57,7 @@ jobs:
           targetPlatform: Android
           buildMethod: CorruptStateRP.Editor.BuildProject.BuildAndroid
           versioning: None
-      - name: Verify AAB
+      - name: Remove temporary signing key\n        if: always()\n        run: rm -f Unity/Builds/corruptstate-signing.keystore\n      - name: Verify AAB
         shell: bash
         run: |
           set -euo pipefail
