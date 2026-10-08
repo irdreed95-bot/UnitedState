@@ -1,16 +1,16 @@
 # PDF traceability and verification status
-Statuses are evidence-based. A green compile proves compilation only, not runtime behavior. **Implemented and tested** requires a passing automated or repeatable runtime test. No feature is labelled tested without that evidence.
+A green compile proves compilation only, not runtime behavior. "Tested" requires automated or repeatable runtime evidence. Incomplete features remain Partial/Not tested.
 
 | # | Requirement | Status | File evidence |
 |---|---|---|---|
-| 1 | Lobby font no Arial.ttf | Code changed; CI pending | Unity/Assets/Scripts/Lobby/LobbyScreen.cs — Awake() uses LegacyRuntime.ttf |
-| 2 | InputField Text is child, not on Image object | Code changed; CI pending | Unity/Assets/Scripts/Onboarding/OnboardingScreen.cs — Field() creates Field/Image then child Text |
-| 3 | Server URL input + persistence; no silent Guest fallback | Code changed; runtime pending | Unity/Assets/Scripts/Onboarding/OnboardingScreen.cs; Unity/Assets/Scripts/Auth/AuthClient.cs |
-| 4 | Refresh endpoint and expiresAtUnix | Code changed; CI/runtime pending | Server/src/server.ts; Unity/Assets/Scripts/Auth/AuthClient.cs |
-| 5 | @types/pg, scrypt+salt registration, separated tokens, rollback, RBAC | Partial; CI pending | Server/package.json; Server/src/server.ts; Server/sql/001_initial.sql |
-| 6 | Remove client-set amount endpoint | Code changed; runtime pending | Server/src/server.ts — only server-defined mission/salary values may alter balances |
-| 7 | /me and mission API from client; server WebSocket | Partial | AuthClient calls /me and mission endpoint; server WebSocket exists, Unity WebSocket client still not integrated |
-| 8 | Read Assets/Data JSON at runtime; medical 14; streets 22 | Partial | faction/streets JSON counts corrected; runtime loader not yet wired |
-| 9 | Vehicle movement lock, InputRouter, MobileActionHUD | Partial | Unity/Assets/Scripts/GameManager.cs; InputRouter.cs; MobileActionHUD.cs |
-| 10 | Full ProjectSettings + URP + Release signed AAB via Secrets | Not implemented/verified | .github/workflows/unity-android.yml still needs AAB and Android signing secrets |
-| 11 | Traceability honesty | Implemented in documentation | This table marks incomplete and untested work explicitly |
+| 1 | Lobby font is LegacyRuntime.ttf; no Arial.ttf use in LobbyScreen | Code changed; CI pending | Unity/Assets/Scripts/Lobby/LobbyScreen.cs — Awake |
+| 2 | InputField Text is child of Field/Image | Code changed; CI pending | Unity/Assets/Scripts/Onboarding/OnboardingScreen.cs — Field |
+| 3 | Server URL input persists; Login does not silently become Guest | Code changed; runtime pending | Unity/Assets/Scripts/Onboarding/OnboardingScreen.cs; Unity/Assets/Scripts/Auth/AuthClient.cs |
+| 4 | Refresh endpoint, separate token secrets, expiresAtUnix | Code changed; CI/runtime pending | Server/src/server.ts; Unity/Assets/Scripts/Auth/AuthClient.cs |
+| 5 | @types/pg, salted scrypt registration, rollback, RBAC | Code changed; CI/database runtime pending | Server/package.json; Server/src/server.ts; Server/sql/001_initial.sql |
+| 6 | Client cannot choose money amount | Server route removed; CI pending | Server/src/server.ts — rewards/salary are server constants |
+| 7 | /me and mission endpoints, authenticated WebSocket | Partial: Unity WebSocket client exists; live multi-client test pending | Unity/Assets/Scripts/Auth/AuthClient.cs; Unity/Assets/Scripts/PlayerRealtimeClient.cs; Server/src/server.ts |
+| 8 | Read Assets/Data JSON at runtime; medical ranks 14; streets 22 | Code/data changed; CI pending | Unity/Assets/Scripts/GameDataCatalog.cs; Unity/Assets/Resources/Data/*.json |
+| 9 | Player locked while driving; unified input; MobileActionHUD | Code changed; CI pending | Unity/Assets/Scripts/GameManager.cs; Unity/Assets/Scripts/InputRouter.cs; Unity/Assets/Scripts/MobileActionHUD.cs |
+| 10 | Complete ProjectSettings + URP + Release signed AAB from Secrets | Not implemented/verified | .github/workflows/unity-android.yml; requires Android signing secrets and URP project asset configuration |
+| 11 | Traceability states evidence honestly | Updated; pending CI evidence | docs/PDF_TRACEABILITY.md |

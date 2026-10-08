@@ -1,8 +1,8 @@
 using System;using System.Collections;using UnityEngine;using UnityEngine.Networking;
 namespace CorruptStateRP.Auth {
 public sealed class AuthClient:MonoBehaviour {
- string baseUrl="";ISessionStore store;public SessionTokens Session{get;private set;}public bool HasSession=>Session!=null&&Session.IsUsable;public event Action<bool> SessionChanged;
- void Awake(){store=new PlayerPrefsSessionStore();Session=store.Load();baseUrl=PlayerPrefs.GetString("CSRP_API_URL",baseUrl);}
+ static AuthClient instance;string baseUrl="";ISessionStore store;public SessionTokens Session{get;private set;}public bool HasSession=>Session!=null&&Session.IsUsable;public event Action<bool> SessionChanged;
+ void Awake(){if(instance!=null&&instance!=this){Destroy(gameObject);return;}instance=this;DontDestroyOnLoad(gameObject);store=new PlayerPrefsSessionStore();Session=store.Load();baseUrl=PlayerPrefs.GetString("CSRP_API_URL",baseUrl);}
  public void Configure(string url){baseUrl=(url??"").Trim().TrimEnd('/');PlayerPrefs.SetString("CSRP_API_URL",baseUrl);PlayerPrefs.Save();}
  bool Ready()=>!string.IsNullOrWhiteSpace(baseUrl);
  public IEnumerator Guest(Action<bool,string> done){if(!Ready()){done?.Invoke(false,"Backend URL is not configured.");yield break;}yield return Send("/auth/guest","{}",false,(json,err)=>{if(err!=null){done?.Invoke(false,err);return;}SaveSession(json,done);});}
