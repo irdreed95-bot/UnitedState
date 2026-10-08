@@ -13,7 +13,7 @@ namespace CorruptStateRP.Onboarding {
             if(auth==null) auth=FindFirstObjectByType<AuthClient>();
             yield return new WaitForSeconds(splashSeconds);
             if(auth==null){SceneManager.LoadScene(loginScene);yield break;}
-            bool restored=false; yield return auth.RestoreSession(ok=>restored=ok);
+            bool restored=false; yield return auth.RestoreSession((ok,error)=>restored=ok);
             SceneManager.LoadScene(restored?lobbyScene:loginScene);
         }
         public void OpenLogin(){SceneManager.LoadScene(loginScene);}
