@@ -57,7 +57,9 @@ jobs:
           targetPlatform: Android
           buildMethod: CorruptStateRP.Editor.BuildProject.BuildAndroid
           versioning: None
-      - name: Remove temporary signing key\n        if: always()\n        run: rm -f Unity/Builds/corruptstate-signing.keystore\n      - name: Verify AAB
+      - name: Remove temporary signing key
+        if: always()
+        run: rm -f Unity/Builds/corruptstate-signing.keystore\n      - name: Verify AAB
         shell: bash
         run: |
           set -euo pipefail
