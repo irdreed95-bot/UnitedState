@@ -40,15 +40,9 @@ jobs:
             test -s "$KS"
             keytool -list -keystore "$KS" -storepass "$ANDROID_KEYSTORE_PASSWORD_SECRET" -alias "$ANDROID_KEY_ALIAS_SECRET" >/dev/null
             echo "SIGNING_MODE=release-secret" >> "$GITHUB_ENV"
-            echo "keystore_password=$ANDROID_KEYSTORE_PASSWORD_SECRET" >> "$GITHUB_OUTPUT"
-            echo "key_alias=$ANDROID_KEY_ALIAS_SECRET" >> "$GITHUB_OUTPUT"
-            echo "key_password=$ANDROID_KEY_PASSWORD_SECRET" >> "$GITHUB_OUTPUT"
           else
             keytool -genkeypair -noprompt -keystore "$KS" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=CI Debug,O=Corrupt State RP,C=US"
             echo "SIGNING_MODE=ci-debug-fallback" >> "$GITHUB_ENV"
-            echo "keystore_password=android" >> "$GITHUB_OUTPUT"
-            echo "key_alias=androiddebugkey" >> "$GITHUB_OUTPUT"
-            echo "key_password=android" >> "$GITHUB_OUTPUT"
             echo "::warning::Android release signing secrets are absent. This run produces a debug-signed test AAB, not a production release."
           fi
       - name: Build Unity Android AAB
@@ -58,9 +52,9 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           ANDROID_KEYSTORE_PATH: /github/workspace/Unity/Builds/corruptstate-signing.keystore
-          ANDROID_KEYSTORE_PASSWORD: ${{ steps.signing.outputs.keystore_password }}
-          ANDROID_KEY_ALIAS: ${{ steps.signing.outputs.key_alias }}
-          ANDROID_KEY_PASSWORD: ${{ steps.signing.outputs.key_password }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'android' }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS || 'androiddebugkey' }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD || 'android' }}
         with:
           projectPath: Unity
           unityVersion: 6000.0.63f1
