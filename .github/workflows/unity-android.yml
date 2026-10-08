@@ -1,92 +1,79 @@
-name: Build Unity Android APK
-
+name: Build Unity Android AAB
 on:
   workflow_dispatch:
   push:
     branches: [main]
-
 permissions:
   contents: read
-
 jobs:
   build:
-    name: Unity 6 Android APK
+    name: Unity 6 Release Android AAB
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download verified 3D assets
+      - name: Download 3D assets
         working-directory: Unity
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq curl ca-certificates
           chmod +x scripts/download_assets.sh
           scripts/download_assets.sh
-
-      - name: Build Unity Android
+      - name: Prepare Android signing key
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD_SECRET: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS_SECRET: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD_SECRET: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KS="$RUNNER_TEMP/corruptstate-signing.keystore"
+          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ]; then
+            printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KS"
+            test -s "$KS"
+            echo "SIGNING_MODE=release-secret" >> "$GITHUB_ENV"
+            echo "ANDROID_KEYSTORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD_SECRET" >> "$GITHUB_ENV"
+            echo "ANDROID_KEY_ALIAS=$ANDROID_KEY_ALIAS_SECRET" >> "$GITHUB_ENV"
+            echo "ANDROID_KEY_PASSWORD=$ANDROID_KEY_PASSWORD_SECRET" >> "$GITHUB_ENV"
+          else
+            keytool -genkeypair -noprompt -keystore "$KS" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=CI Debug,O=Corrupt State RP,C=US"
+            echo "SIGNING_MODE=ci-debug-fallback" >> "$GITHUB_ENV"
+            echo "ANDROID_KEYSTORE_PASSWORD=android" >> "$GITHUB_ENV"
+            echo "ANDROID_KEY_ALIAS=androiddebugkey" >> "$GITHUB_ENV"
+            echo "ANDROID_KEY_PASSWORD=android" >> "$GITHUB_ENV"
+          fi
+          echo "ANDROID_KEYSTORE_PATH=$KS" >> "$GITHUB_ENV"
+      - name: Build Unity Release AAB
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          ANDROID_KEYSTORE_PATH: ${{ env.ANDROID_KEYSTORE_PATH }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ env.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ env.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ env.ANDROID_KEY_PASSWORD }}
         with:
           projectPath: Unity
           unityVersion: 6000.0.63f1
           targetPlatform: Android
           buildMethod: CorruptStateRP.Editor.BuildProject.BuildAndroid
           versioning: None
-
-      - name: Copy and sign APK with temporary debug certificate
+      - name: Verify AAB
         shell: bash
         run: |
           set -euo pipefail
-          SOURCE_APK="Unity/Builds/Android/CorruptStateRP.apk"
-          APK="$RUNNER_TEMP/CorruptStateRP.apk"
-          test -f "$SOURCE_APK"
-          cp "$SOURCE_APK" "$APK"
-          test -w "$APK"
-
-          KEYSTORE="$RUNNER_TEMP/Unity-debug.keystore"
-          keytool -genkeypair -v \
-            -keystore "$KEYSTORE" \
-            -storepass android \
-            -alias androiddebugkey \
-            -keypass android \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US" \
-            >/dev/null 2>&1
-
-          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
-          test -n "$APKSIGNER"
-          "$APKSIGNER" sign \
-            --ks "$KEYSTORE" \
-            --ks-pass pass:android \
-            --key-pass pass:android \
-            --ks-key-alias androiddebugkey \
-            "$APK"
-
-      - name: Verify APK integrity and signature
-        shell: bash
-        run: |
-          set -euo pipefail
-          APK="$RUNNER_TEMP/CorruptStateRP.apk"
-          test -f "$APK"
-          test "$(stat -c%s "$APK")" -gt 1000000
-          file "$APK" | grep -qi "zip"
-          unzip -t "$APK" >/dev/null
-
-          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
-          test -n "$APKSIGNER"
-          "$APKSIGNER" verify --verbose "$APK"
-          echo "APK verified and signed: $(stat -c%s "$APK") bytes"
-
-      - name: Upload APK
+          AAB="Unity/Builds/Android/CorruptStateRP.aab"
+          test -f "$AAB"
+          test "$(stat -c%s "$AAB")" -gt 1000000
+          unzip -t "$AAB" >/dev/null
+          jarsigner -verify -verbose -certs "$AAB" >/dev/null
+          echo "AAB structure and signature verified; mode=$SIGNING_MODE; bytes=$(stat -c%s "$AAB")"
+      - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
-          name: CorruptStateRP-Unity-Android
-          path: ${{ runner.temp }}/CorruptStateRP.apk
+          name: CorruptStateRP-Android-AAB
+          path: Unity/Builds/Android/CorruptStateRP.aab
           if-no-files-found: error
           compression-level: 0
