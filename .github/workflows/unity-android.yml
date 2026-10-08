@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   build:
-    name: Unity 6 Android AAB (release secret when configured)
+    name: Unity 6 Release Android AAB
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,41 +20,32 @@ jobs:
           sudo apt-get install -y -qq curl ca-certificates
           chmod +x scripts/download_assets.sh
           scripts/download_assets.sh
-      - name: Prepare signing key
-        id: signing
+      - name: Prepare release signing key
         shell: bash
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD_SECRET: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS_SECRET: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD_SECRET: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           set -euo pipefail
+          test -n "${ANDROID_KEYSTORE_BASE64:-}" || { echo "::error::Missing GitHub Secret ANDROID_KEYSTORE_BASE64"; exit 1; }
+          test -n "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" || { echo "::error::Missing GitHub Secret ANDROID_KEYSTORE_PASSWORD"; exit 1; }
+          test -n "${{ secrets.ANDROID_KEY_ALIAS }}" || { echo "::error::Missing GitHub Secret ANDROID_KEY_ALIAS"; exit 1; }
+          test -n "${{ secrets.ANDROID_KEY_PASSWORD }}" || { echo "::error::Missing GitHub Secret ANDROID_KEY_PASSWORD"; exit 1; }
           mkdir -p "$GITHUB_WORKSPACE/Unity/Builds"
           KS="$GITHUB_WORKSPACE/Unity/Builds/corruptstate-signing.keystore"
-          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ]; then
-            test -n "${ANDROID_KEYSTORE_PASSWORD_SECRET:-}" || { echo "::error::Missing GitHub Secret ANDROID_KEYSTORE_PASSWORD"; exit 1; }
-            test -n "${ANDROID_KEY_ALIAS_SECRET:-}" || { echo "::error::Missing GitHub Secret ANDROID_KEY_ALIAS"; exit 1; }
-            test -n "${ANDROID_KEY_PASSWORD_SECRET:-}" || { echo "::error::Missing GitHub Secret ANDROID_KEY_PASSWORD"; exit 1; }
-            printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KS"
-            test -s "$KS"
-            keytool -list -keystore "$KS" -storepass "$ANDROID_KEYSTORE_PASSWORD_SECRET" -alias "$ANDROID_KEY_ALIAS_SECRET" >/dev/null
-            echo "SIGNING_MODE=release-secret" >> "$GITHUB_ENV"
-          else
-            keytool -genkeypair -noprompt -keystore "$KS" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=CI Debug,O=Corrupt State RP,C=US"
-            echo "SIGNING_MODE=ci-debug-fallback" >> "$GITHUB_ENV"
-            echo "::warning::Android release signing secrets are absent. This run produces a debug-signed test AAB, not a production release."
-          fi
-      - name: Build Unity Android AAB
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KS"
+          test -s "$KS"
+          keytool -list -keystore "$KS" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -alias "${{ secrets.ANDROID_KEY_ALIAS }}" >/dev/null
+          echo "ANDROID_KEYSTORE_PATH=/github/workspace/Unity/Builds/corruptstate-signing.keystore" >> "$GITHUB_ENV"
+      - name: Build Unity Release Android AAB
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           ANDROID_KEYSTORE_PATH: /github/workspace/Unity/Builds/corruptstate-signing.keystore
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'android' }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS || 'androiddebugkey' }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD || 'android' }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         with:
           projectPath: Unity
           unityVersion: 6000.0.63f1
@@ -70,14 +61,14 @@ jobs:
           test "$(stat -c%s "$AAB")" -gt 1000000
           unzip -t "$AAB" >/dev/null
           jarsigner -verify -verbose -certs "$AAB" >/dev/null
-          echo "AAB structure and signature verified; mode=$SIGNING_MODE; bytes=$(stat -c%s "$AAB")"
+          echo "Release AAB structure and signature verified; bytes=$(stat -c%s "$AAB")"
       - name: Remove signing key
         if: always()
         run: rm -f Unity/Builds/corruptstate-signing.keystore
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
-          name: CorruptStateRP-Android-AAB
+          name: CorruptStateRP-Release-AAB
           path: Unity/Builds/Android/CorruptStateRP.aab
           if-no-files-found: error
           compression-level: 0

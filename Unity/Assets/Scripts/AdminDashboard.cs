@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
+using CorruptStateRP.Auth;
 
 namespace CorruptStateRP {
 public sealed class AdminDashboard : MonoBehaviour {
@@ -26,7 +28,7 @@ public sealed class AdminDashboard : MonoBehaviour {
         Button(panel.transform,"إغلاق",()=>panel.SetActive(false),new Vector2(.70f,.15f),new Vector2(.92f,.15f),-395);
         panel.SetActive(false);
     }
-    void Action(string action){status.text=$"تم اختيار أمر الإدارة: {action}";Debug.Log("Admin action: "+action);}
+    void Action(string action){if(action=="سجل القتل"){var auth=FindFirstObjectByType<AuthClient>();if(auth==null){status.text="لا توجد جلسة مصادقة.";return;}status.text="جارٍ طلب سجل التدقيق من الخادم...";StartCoroutine(auth.GetAdminAudit((json,error)=>{status.text=error==null?"وصل سجل التدقيق من الخادم.":"رفض الخادم الطلب: "+error;if(json!=null)Debug.Log("Admin audit response received ("+json.Length+" chars).");}));return;}status.text="هذا الأمر لا ينفذ إجراءً بعد: "+action;}
     Text Text(Transform p,string v,int fs,TextAnchor a){return Text(p,v,fs,a,Vector2.zero,new Vector2(300,45));}
     Text Text(Transform p,string v,int fs,TextAnchor a,Vector2 pos,Vector2 size){var g=new GameObject("Text");g.transform.SetParent(p,false);var t=g.AddComponent<Text>();t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");t.text=v;t.fontSize=fs;t.alignment=a;t.color=Color.white;t.rectTransform.anchoredPosition=pos;t.rectTransform.sizeDelta=size;return t;}
     void Button(Transform p,string v,UnityEngine.Events.UnityAction action,Vector2 min,Vector2 max,float y){var g=new GameObject(v);g.transform.SetParent(p,false);var rt=g.AddComponent<RectTransform>();rt.anchorMin=new Vector2(min.x,.5f);rt.anchorMax=new Vector2(max.x,.5f);rt.anchoredPosition=new Vector2(0,y);rt.sizeDelta=new Vector2(0,42);var im=g.AddComponent<Image>();im.color=new Color(.12f,.14f,.18f,1);var b=g.AddComponent<Button>();b.targetGraphic=im;b.onClick.AddListener(action);Text(g.transform,v,15,TextAnchor.MiddleCenter,Vector2.zero,new Vector2(-8,-6));}
