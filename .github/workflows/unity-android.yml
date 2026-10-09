@@ -91,40 +91,59 @@ jobs:
           androidKeyaliasPass: ${{ steps.signing.outputs.key_password }}
           buildMethod: CorruptStateRP.Editor.BuildProject.BuildAndroid
           versioning: None
-      - name: Verify APK
-        id: verify_apk
+      - name: Locate Android build output
+        id: locate_output
         if: always()
         shell: bash
         run: |
           set -uo pipefail
-          echo "Searching for APK output under workspace..."
-          find "$GITHUB_WORKSPACE/Unity" -type f -name '*.apk' -print || true
-          APK="$(find "$GITHUB_WORKSPACE/Unity" -type f -name '*.apk' -print -quit)"
-          if [ -z "$APK" ]; then
-            echo "::error::No .apk file found under $GITHUB_WORKSPACE/Unity"
-            exit 1
+          echo "=== Unity APK/AAB outputs ==="
+          find Unity -type f \\( -name "*.apk" -o -name "*.aab" \\) -print 2>/dev/null || true
+          echo "=== All files under Unity/Builds ==="
+          if [ -d Unity/Builds ]; then find Unity/Builds -type f -printf '%p (%s bytes)\\n' | sort; else echo "Unity/Builds does not exist"; fi
+          APK="$(find Unity -type f -name '*.apk' -print -quit 2>/dev/null || true)"
+          AAB="$(find Unity -type f -name '*.aab' -print -quit 2>/dev/null || true)"
+          if [ -n "$APK" ] && [ -s "$APK" ]; then
+            echo "artifact_path=$APK" >> "$GITHUB_OUTPUT"
+            echo "artifact_kind=apk" >> "$GITHUB_OUTPUT"
+            echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
+            echo "Selected APK: $APK"
+          elif [ -n "$AAB" ] && [ -s "$AAB" ]; then
+            echo "artifact_path=$AAB" >> "$GITHUB_OUTPUT"
+            echo "artifact_kind=aab" >> "$GITHUB_OUTPUT"
+            echo "apk_path=" >> "$GITHUB_OUTPUT"
+            echo "Selected AAB fallback: $AAB"
+          else
+            echo "artifact_path=" >> "$GITHUB_OUTPUT"
+            echo "artifact_kind=none" >> "$GITHUB_OUTPUT"
+            echo "apk_path=" >> "$GITHUB_OUTPUT"
+            echo "::error::No non-empty APK or AAB found under Unity"
           fi
-          echo "Found APK: $APK"
-          echo "apk_path=$APK" >> "$GITHUB_OUTPUT"
+      - name: Verify APK
+        id: verify_apk
+        if: always() && steps.locate_output.outputs.apk_path != ''
+        shell: bash
+        run: |
+          set -uo pipefail
+          APK="${{ steps.locate_output.outputs.apk_path }}"
+          echo "Verifying APK: $APK"
           test -s "$APK" || { echo "::error::APK file is empty: $APK"; exit 1; }
           SDK_APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner -print -quit 2>/dev/null || true)"
-          if [ -z "$SDK_APKSIGNER" ]; then
-            SDK_APKSIGNER="$(command -v apksigner || true)"
-          fi
+          if [ -z "$SDK_APKSIGNER" ]; then SDK_APKSIGNER="$(command -v apksigner || true)"; fi
           if [ -n "$SDK_APKSIGNER" ]; then
             "$SDK_APKSIGNER" verify --verbose "$APK"
           else
             echo "::error::apksigner not found in Android SDK build-tools or PATH"
             exit 1
           fi
-      - name: Remove signing key
+            - name: Remove signing key
         if: always()
         run: rm -f Unity/Builds/corruptstate-signing.keystore
-      - name: Upload APK
-        if: always() && steps.verify_apk.outputs.apk_path != ''
+      - name: Upload Android build artifact
+        if: always() && steps.locate_output.outputs.artifact_path != ''
         uses: actions/upload-artifact@v4
         with:
-          name: CorruptStateRP-Android-APK
-          path: ${{ steps.verify_apk.outputs.apk_path }}
+          name: CorruptStateRP-Android-${{ steps.locate_output.outputs.artifact_kind }}
+          path: ${{ steps.locate_output.outputs.artifact_path }}
           if-no-files-found: error
           compression-level: 0
