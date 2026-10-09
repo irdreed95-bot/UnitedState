@@ -98,9 +98,9 @@ jobs:
         run: |
           set -uo pipefail
           echo "=== Unity APK/AAB outputs ==="
-          find Unity -type f \\( -name "*.apk" -o -name "*.aab" \\) -print 2>/dev/null || true
+          find Unity -type f \( -name "*.apk" -o -name "*.aab" \) -print 2>/dev/null || true
           echo "=== All files under Unity/Builds ==="
-          if [ -d Unity/Builds ]; then find Unity/Builds -type f -printf '%p (%s bytes)\\n' | sort; else echo "Unity/Builds does not exist"; fi
+          if [ -d Unity/Builds ]; then find Unity/Builds -type f -printf '%p (%s bytes)\n' | sort; else echo "Unity/Builds does not exist"; fi
           APK="$(find Unity -type f -name '*.apk' -print -quit 2>/dev/null || true)"
           AAB="$(find Unity -type f -name '*.aab' -print -quit 2>/dev/null || true)"
           if [ -n "$APK" ] && [ -s "$APK" ]; then
@@ -136,7 +136,7 @@ jobs:
             echo "::error::apksigner not found in Android SDK build-tools or PATH"
             exit 1
           fi
-            - name: Remove signing key
+      - name: Remove signing key
         if: always()
         run: rm -f Unity/Builds/corruptstate-signing.keystore
       - name: Upload Android build artifact
