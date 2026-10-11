@@ -99,7 +99,7 @@ public sealed class WorldBuilder : MonoBehaviour {
  bool InPark(float x,float z){
   return (x>-258&&x<-162&&z>-235&&z<-135)||(x>-258&&x<-162&&z>150&&z<240)||(x>80&&x<180&&z>-238&&z<-172);
  }
- void BuildDetailedBuilding(Vector3 p,bool tall){
+ GameObject BuildDetailedBuilding(Vector3 p,bool tall){
   var root=new GameObject(tall?"FallbackMidRise":"FallbackHouse");root.transform.position=p;
   float h=tall?rng.Next(5,12)*3f:rng.Next(2,4)*2.8f;
   float w=tall?rng.Next(9,15):rng.Next(7,10),d=tall?rng.Next(9,15):rng.Next(7,10);
@@ -110,11 +110,12 @@ public sealed class WorldBuilder : MonoBehaviour {
    }
   }
   CubeChild(root.transform,"RoofLip",new Vector3(0,h+.12f,0),new Vector3(w+.4f,.25f,d+.4f),metal);
+  return root;
  }
  void Landmarks(){
   foreach(var l in landmarks){
    var go=Spawn(l.Item3,l.Item2,1.4f,l.Item1);
-   if(go==null){BuildDetailedBuilding(l.Item2,true);go=GameObject.Find(l.Item1);}
+   if(go==null){go=BuildDetailedBuilding(l.Item2,true);go.name=l.Item1;}
    if(go==null)continue;
    var label=new GameObject("LandmarkLabel").AddComponent<TextMesh>();label.text=l.Item1;label.fontSize=48;label.characterSize=.08f;label.anchor=TextAnchor.MiddleCenter;label.color=Color.white;label.transform.SetParent(go.transform,false);label.transform.localPosition=new Vector3(0,12,0);
   }
