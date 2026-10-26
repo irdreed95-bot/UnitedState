@@ -28,6 +28,6 @@ public static class ArabicFixer {
   while(start<charsOut.Length){if(IsLtr(charsOut[start])){int end=start+1;while(end<charsOut.Length&&IsLtr(charsOut[end]))end++;Array.Reverse(charsOut,start,end-start);start=end;}else start++;}
   return new string(charsOut);
  }
- static bool IsLtr(char c)=>char.IsLetterOrDigit(c)&&Array.IndexOf(chars,c)<0;
+ static bool IsLtr(char c)=>c >= ' ' && c <= '~';
 }
 }
