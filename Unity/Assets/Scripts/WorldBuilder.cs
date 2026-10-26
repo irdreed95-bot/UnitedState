@@ -35,12 +35,7 @@ public sealed class WorldBuilder : MonoBehaviour {
  }
  void GroundAndRoads(){
   var ground=Cube("CityTerrain",new Vector3(0,-.8f,0),new Vector3(CitySize,1,CitySize),grass);
-  for(int x=-30;x<=30;x++)for(int z=-30;z<=30;z++){
-   if(Mathf.Abs(x)<=1||Mathf.Abs(z)<=1||x%4==0||z%4==0)continue;
-   float wx=x*Cell,wz=z*Cell;
-   if(wx>190&&Mathf.Abs(wz)>115)continue;
-   Cube("CityBlockLot",new Vector3(wx,-.22f,wz),new Vector3(9.2f,.12f,9.2f),concrete);
-  }
+  // Keep the terrain continuous; avoid thousands of small slab objects on mobile.
   for(int i=-30;i<=30;i++){
    float p=i*Cell;
    if(i%4==0||Mathf.Abs(i)<=1){
