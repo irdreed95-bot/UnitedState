@@ -14,5 +14,5 @@ public sealed class VehicleController:MonoBehaviour{
  public void ToggleSeatbelt(){SeatbeltOn=!SeatbeltOn;}
  public void ToggleWipers(){WipersOn=!WipersOn;}
  public void ToggleDoor(){FrontLeftDoorOpen=!FrontLeftDoorOpen;}
- public void Drive(Vector2 i){if(!Controlled||!EngineOn||rb==null)return;float t=-i.y;rb.AddForce(transform.forward*t*acceleration,ForceMode.Acceleration);var l=transform.InverseTransformDirection(rb.linearVelocity);l.z=Mathf.Clamp(l.z,-maxSpeed,maxSpeed);rb.linearVelocity=transform.TransformDirection(l);transform.Rotate(0,i.x*turnSpeed*Time.deltaTime*Mathf.Clamp01(rb.linearVelocity.magnitude/3),0);}
+ public void Drive(Vector2 i){if(!Controlled||!EngineOn||rb==null)return;float t=i.y;rb.AddForce(transform.forward*t*acceleration,ForceMode.Acceleration);var l=transform.InverseTransformDirection(rb.linearVelocity);l.z=Mathf.Clamp(l.z,-maxSpeed,maxSpeed);rb.linearVelocity=transform.TransformDirection(l);transform.Rotate(0,i.x*turnSpeed*Time.deltaTime*Mathf.Clamp01(rb.linearVelocity.magnitude/3),0);}
 }}
