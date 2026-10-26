@@ -167,8 +167,11 @@ public sealed class WorldBuilder : MonoBehaviour {
   var go=GameObject.CreatePrimitive(PrimitiveType.Cube);go.name=n;go.transform.SetParent(parent,false);go.transform.localPosition=p;go.transform.localScale=scale;go.GetComponent<Renderer>().material=m;return go;
  }
  static Material Mat(Color c){
-  var shader=Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Standard");
-  var m=new Material(shader);m.color=c;m.SetFloat("_Smoothness",.18f);return m;
+  var shader=Shader.Find("Universal Render Pipeline/Lit");
+  if(shader==null)shader=Shader.Find("Universal Render Pipeline/Simple Lit");
+  if(shader==null)shader=Shader.Find("Universal Render Pipeline/Unlit");
+  if(shader==null){Debug.LogError("No URP-compatible shader found; check URP package and pipeline asset.");shader=Shader.Find("Sprites/Default");}
+  var m=new Material(shader);m.color=c;if(m.HasProperty("_Smoothness"))m.SetFloat("_Smoothness",.18f);return m;
  }
 }
 }
