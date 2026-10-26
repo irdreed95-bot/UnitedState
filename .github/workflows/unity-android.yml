@@ -5,6 +5,9 @@ on:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: offline-android-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     name: Unity 6 Android APK (release secret when configured)
