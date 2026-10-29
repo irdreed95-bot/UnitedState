@@ -25,9 +25,9 @@ public static class BuildProject {
    var mats=renderer.sharedMaterials;
    for(int i=0;i<mats.Length;i++){
     var old=mats[i];if(old==null)continue;
-    if(old.shader!=null&&old.shader.name.StartsWith("Universal Render Pipeline/"))continue;
-    var replacement=new Material(lit){name=old.name+" (URP)",color=old.HasProperty("_Color")?old.color:Color.white};
-    if(old.HasProperty("_MainTex")&&replacement.HasProperty("_BaseMap"))replacement.SetTexture("_BaseMap",old.GetTexture("_MainTex"));
+    
+    Color sourceColor=old.HasProperty("_BaseColor")?old.GetColor("_BaseColor"):(old.HasProperty("_Color")?old.color:Color.white);if(sourceColor.r>.75f&&sourceColor.b>.75f&&sourceColor.g<.3f)sourceColor=Color.gray;var replacement=new Material(lit){name=old.name+" (URP)",color=sourceColor};
+    if(replacement.HasProperty("_BaseMap")){var texture=old.HasProperty("_BaseMap")?old.GetTexture("_BaseMap"):(old.HasProperty("_MainTex")?old.GetTexture("_MainTex"):null);if(texture!=null)replacement.SetTexture("_BaseMap",texture);}
     if(old.HasProperty("_BaseColor")&&replacement.HasProperty("_BaseColor"))replacement.SetColor("_BaseColor",old.GetColor("_BaseColor"));
     mats[i]=replacement;
    }
