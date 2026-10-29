@@ -158,7 +158,7 @@ public sealed class WorldBuilder : MonoBehaviour {
  }
  GameObject Spawn(string path,Vector3 p,float s,string n){
   var prefab=Resources.Load<GameObject>(path);if(prefab==null)return null;
-  var go=Instantiate(prefab,p,Quaternion.identity);go.name=n;go.transform.localScale*=s;return go;
+  var go=Instantiate(prefab,p,Quaternion.identity);go.name=n;go.transform.localScale*=s;MaterialRepair.Apply(go);return go;
  }
  GameObject Cube(string n,Vector3 p,Vector3 scale,Material m){
   var go=GameObject.CreatePrimitive(PrimitiveType.Cube);go.name=n;go.transform.position=p;go.transform.localScale=scale;go.GetComponent<Renderer>().material=m;return go;
