@@ -6,7 +6,7 @@ public sealed class VehicleController:MonoBehaviour{
  public bool LightsOn{get;private set;} public bool HazardsOn{get;private set;} public bool SeatbeltOn{get;private set;} public bool WipersOn{get;private set;}
  public bool FrontLeftDoorOpen{get;private set;}
  Rigidbody rb;
- public void Initialize(){rb=gameObject.AddComponent<Rigidbody>();rb.mass=1100;rb.centerOfMass=new(0,-.4f,0);var c=gameObject.AddComponent<BoxCollider>();c.size=new(1.9f,.9f,4);var p=Resources.Load<GameObject>("Generated3D/sedan");if(p){var model=Instantiate(p,transform);model.name="VehicleBody";MaterialRepair.Apply(model);}else{BuildFallbackCar();}}
+ public void Initialize(){rb=gameObject.AddComponent<Rigidbody>();rb.mass=1100;rb.centerOfMass=new(0,-.4f,0);var c=gameObject.AddComponent<BoxCollider>();c.size=new(1.9f,.9f,4);var p=Resources.Load<GameObject>("Generated3D/sedan");if(p){var model=Instantiate(p,transform);model.name="VehicleBody";}else{BuildFallbackCar();}}
  void BuildFallbackCar(){
   var body=GameObject.CreatePrimitive(PrimitiveType.Cube);body.name="CarBody";body.transform.SetParent(transform,false);body.transform.localScale=new Vector3(1.85f,.55f,3.7f);body.transform.localPosition=new Vector3(0,.62f,0);body.GetComponent<Renderer>().material=new Material(Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Standard")){color=new Color(.12f,.28f,.48f)};
   var cabin=GameObject.CreatePrimitive(PrimitiveType.Cube);cabin.name="CarCabin";cabin.transform.SetParent(transform,false);cabin.transform.localScale=new Vector3(1.35f,.58f,1.65f);cabin.transform.localPosition=new Vector3(0,1.12f,-.25f);cabin.GetComponent<Renderer>().material=new Material(Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Standard")){color=new Color(.12f,.19f,.23f)};
