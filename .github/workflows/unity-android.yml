@@ -106,8 +106,12 @@ jobs:
           find Unity -type f \( -name "*.apk" -o -name "*.aab" \) -print 2>/dev/null || true
           echo "=== All files under Unity/Builds ==="
           if [ -d Unity/Builds ]; then find Unity/Builds -type f -printf '%p (%s bytes)\n' | sort; else echo "Unity/Builds does not exist"; fi
-          APK="$(find Unity -type f -name '*.apk' -print -quit 2>/dev/null || true)"
-          AAB="$(find Unity -type f -name '*.aab' -print -quit 2>/dev/null || true)"
+          # Prefer the exact output emitted by BuildProject.cs. Never select a
+          # transient Gradle APK from Unity/Library by filesystem traversal order.
+          APK="Unity/Builds/Android/CorruptStateRP.apk"
+          AAB="Unity/Builds/Android/CorruptStateRP.aab"
+          if [ ! -s "$APK" ]; then APK=""; fi
+          if [ ! -s "$AAB" ]; then AAB=""; fi
           if [ -n "$APK" ] && [ -s "$APK" ]; then
             echo "artifact_path=$APK" >> "$GITHUB_OUTPUT"
             echo "artifact_kind=apk" >> "$GITHUB_OUTPUT"
