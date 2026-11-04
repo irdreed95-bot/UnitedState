@@ -21,6 +21,7 @@ public sealed class JobAndFactionSystem:MonoBehaviour {
   Salary=salaries.TryGetValue(CurrentJob,out var amount)?amount:0;
  }
  void AddFaction(GameDataCatalog.Faction faction,string id){if(faction!=null&&!string.IsNullOrWhiteSpace(faction.name)&&!factionNames.Contains(faction.name)){factionNames.Add(faction.name);factionIds[faction.name]=id;}}
+ public void ApplyServerProfile(string jobId,string factionId){CurrentJob="عاطل";Salary=0;foreach(var pair in jobIds)if(pair.Value==jobId){CurrentJob=pair.Key;Salary=salaries[CurrentJob];break;}CurrentFaction="مدني";foreach(var pair in factionIds)if(pair.Value==factionId){CurrentFaction=pair.Key;break;}PlayerPrefs.SetString("CSRP_CURRENT_JOB",CurrentJob);PlayerPrefs.SetString("CSRP_CURRENT_FACTION",CurrentFaction);PlayerPrefs.Save();}
  public bool TryGetJobId(string name,out string id)=>jobIds.TryGetValue(name,out id);
  public bool TryGetFactionId(string name,out string id)=>factionIds.TryGetValue(name,out id);
  public bool ChooseJob(string job){if(!salaries.TryGetValue(job,out var amount))return false;Salary=amount;CurrentJob=job;PlayerPrefs.SetString("CSRP_CURRENT_JOB",job);PlayerPrefs.Save();return true;}
