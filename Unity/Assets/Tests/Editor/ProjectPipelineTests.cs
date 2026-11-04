@@ -36,8 +36,8 @@ public sealed class ProjectPipelineTests {
   var load=catalog.GetMethod("LoadAll",BindingFlags.Public|BindingFlags.Static);
   Assert.NotNull(load);
   try{load.Invoke(null,null);}catch(TargetInvocationException e){throw e.InnerException??e;}
-  Assert.AreEqual(1,EditorBuildSettings.scenes.Length,"Expected one active gameplay scene.");
-  Assert.IsTrue(EditorBuildSettings.scenes[0].enabled,"Gameplay scene is not enabled in build settings.");
-  Assert.IsTrue(AssetDatabase.LoadAssetAtPath<SceneAsset>(EditorBuildSettings.scenes[0].path)!=null,"Gameplay scene asset is missing.");
+  Assert.AreEqual(4,EditorBuildSettings.scenes.Length,"Expected Splash, Login, Lobby and Gameplay scenes.");
+  string[] expectedScenes={"Assets/Scenes/SplashScene.unity","Assets/Scenes/LoginScene.unity","Assets/Scenes/LobbyScene.unity","Assets/Scenes/CityRPScene.unity"};
+  for(int i=0;i<expectedScenes.Length;i++){Assert.IsTrue(EditorBuildSettings.scenes[i].enabled,"Scene is not enabled: "+expectedScenes[i]);Assert.AreEqual(expectedScenes[i],EditorBuildSettings.scenes[i].path,"Scene order mismatch at index "+i);Assert.IsTrue(AssetDatabase.LoadAssetAtPath<SceneAsset>(expectedScenes[i])!=null,"Scene asset is missing: "+expectedScenes[i]);}
  }
 }
