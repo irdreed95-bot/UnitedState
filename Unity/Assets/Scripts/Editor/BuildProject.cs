@@ -1,9 +1,22 @@
 #if UNITY_EDITOR
-using UnityEditor;using UnityEditor.SceneManagement;using UnityEngine;using UnityEditor.Build.Reporting;using UnityEngine.Rendering;using UnityEngine.Rendering.Universal;
+using UnityEditor;using UnityEditor.SceneManagement;using UnityEngine;using UnityEditor.Build.Reporting;using System.Linq;using UnityEngine.Rendering;using UnityEngine.Rendering.Universal;
 namespace CorruptStateRP.Editor {
 public static class BuildProject {
  [MenuItem("Corrupt State RP/Generate Onboarding Scenes")]
- public static void GenerateOnboardingScenes(){ConfigureProjectSettings();EnsureURP();SyncDataResources();Generate3DPrefabs();var gameplayScene=ResolveGameplayScene();EditorBuildSettings.scenes=new[]{new EditorBuildSettingsScene(gameplayScene,true)};AssetDatabase.SaveAssets();}
+ public static void GenerateOnboardingScenes(){
+  ConfigureProjectSettings();EnsureURP();SyncDataResources();Generate3DPrefabs();
+  Make("SplashScene",CorruptStateRP.Onboarding.OnboardingScreen.Mode.Splash);
+  Make("LoginScene",CorruptStateRP.Onboarding.OnboardingScreen.Mode.Login);
+  Make("LobbyScene",CorruptStateRP.Onboarding.OnboardingScreen.Mode.Lobby);
+  var gameplayScene=ResolveGameplayScene();
+  EditorBuildSettings.scenes=new[]{
+   new EditorBuildSettingsScene("Assets/Scenes/SplashScene.unity",true),
+   new EditorBuildSettingsScene("Assets/Scenes/LoginScene.unity",true),
+   new EditorBuildSettingsScene("Assets/Scenes/LobbyScene.unity",true),
+   new EditorBuildSettingsScene(gameplayScene,true)
+  };
+  AssetDatabase.SaveAssets();
+ }
  static string ResolveGameplayScene(){
   const string importedCity="Assets/Scenes/demo_city_night.unity";
   const string generatedCity="Assets/Scenes/CityRPScene.unity";
@@ -62,6 +75,6 @@ public static class BuildProject {
  }
  static void Make(string name,CorruptStateRP.Onboarding.OnboardingScreen.Mode? mode){var s=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);if(mode.HasValue){var go=new GameObject("OnboardingScreen");var c=go.AddComponent<CorruptStateRP.Onboarding.OnboardingScreen>();var so=new SerializedObject(c);so.FindProperty("mode").enumValueIndex=(int)mode.Value;so.ApplyModifiedPropertiesWithoutUndo();if(mode.Value==CorruptStateRP.Onboarding.OnboardingScreen.Mode.Lobby){go.AddComponent<CorruptStateRP.Lobby.LobbyScreen>();}if(mode.Value==CorruptStateRP.Onboarding.OnboardingScreen.Mode.Splash){new GameObject("AuthClient").AddComponent<CorruptStateRP.Auth.AuthClient>();go.AddComponent<CorruptStateRP.Onboarding.OnboardingFlowController>();}}else{var gm=new GameObject("GameManager");gm.AddComponent<CorruptStateRP.GameManager>();gm.AddComponent<CorruptStateRP.CityInteractionSystem>();var mobile=new GameObject("MobileHUD");mobile.AddComponent<CorruptStateRP.Mobile.MobileHUD>();}EditorSceneManager.SaveScene(s,"Assets/Scenes/"+name+".unity");}
  [MenuItem("Corrupt State RP/Build Android")]
- public static void BuildAndroid(){GenerateOnboardingScenes();var format=(System.Environment.GetEnvironmentVariable("CORRUPTSTATE_BUILD_FORMAT")??"apk").Trim().ToLowerInvariant();var buildAab=format=="aab";if(!buildAab&&format!="apk")throw new System.Exception("CORRUPTSTATE_BUILD_FORMAT must be apk or aab; got: "+format);EditorUserBuildSettings.buildAppBundle=buildAab;var extension=buildAab?".aab":".apk";var output="Builds/Android/CorruptStateRP"+extension;System.IO.Directory.CreateDirectory("Builds/Android");var gameplayScene=ResolveGameplayScene();EditorBuildSettings.scenes=new[]{new EditorBuildSettingsScene(gameplayScene,true)};var o=new BuildPlayerOptions{scenes=new[]{gameplayScene},locationPathName=output,target=BuildTarget.Android,options=BuildOptions.None};Debug.Log("CORRUPTSTATE_BUILD_FORMAT="+format+"; locationPathName="+o.locationPathName+"; buildAppBundle="+EditorUserBuildSettings.buildAppBundle);var r=BuildPipeline.BuildPlayer(o);if(r.summary.result!=BuildResult.Succeeded)throw new System.Exception("Android "+format.ToUpperInvariant()+" build failed: "+r.summary.result);if(!System.IO.File.Exists(output))throw new System.Exception("Build reported success but output file is missing: "+output);Debug.Log("Android build output verified: "+output+" ("+new System.IO.FileInfo(output).Length+" bytes)");}
+ public static void BuildAndroid(){GenerateOnboardingScenes();var format=(System.Environment.GetEnvironmentVariable("CORRUPTSTATE_BUILD_FORMAT")??"apk").Trim().ToLowerInvariant();var buildAab=format=="aab";if(!buildAab&&format!="apk")throw new System.Exception("CORRUPTSTATE_BUILD_FORMAT must be apk or aab; got: "+format);EditorUserBuildSettings.buildAppBundle=buildAab;var extension=buildAab?".aab":".apk";var output="Builds/Android/CorruptStateRP"+extension;System.IO.Directory.CreateDirectory("Builds/Android");var scenes=EditorBuildSettings.scenes.Where(scene=>scene.enabled).Select(scene=>scene.path).ToArray();if(scenes.Length!=4)throw new System.Exception("Expected Splash, Login, Lobby and Gameplay scenes; found "+scenes.Length);var o=new BuildPlayerOptions{scenes=scenes,locationPathName=output,target=BuildTarget.Android,options=BuildOptions.None};Debug.Log("CORRUPTSTATE_BUILD_FORMAT="+format+"; locationPathName="+o.locationPathName+"; buildAppBundle="+EditorUserBuildSettings.buildAppBundle);var r=BuildPipeline.BuildPlayer(o);if(r.summary.result!=BuildResult.Succeeded)throw new System.Exception("Android "+format.ToUpperInvariant()+" build failed: "+r.summary.result);if(!System.IO.File.Exists(output))throw new System.Exception("Build reported success but output file is missing: "+output);Debug.Log("Android build output verified: "+output+" ("+new System.IO.FileInfo(output).Length+" bytes)");}
 }}
 #endif
