@@ -1,12 +1,12 @@
 using UnityEngine;using UnityEngine.UI;
 namespace CorruptStateRP {
 public sealed class GameManager:MonoBehaviour {
- PlayerController player;VehicleController vehicle;Camera mainCamera;JobAndFactionSystem jobSystem;InputRouter inputRouter;MobileActionHUD actionHud;Text stats,mission,worldStatus;ThirdPersonCameraFollow cameraFollow;
+ PlayerController player;VehicleController vehicle;Camera mainCamera;JobAndFactionSystem jobSystem;InputRouter inputRouter;MobileActionHUD actionHud;CareerDashboard careerDashboard;Text stats,mission,worldStatus;ThirdPersonCameraFollow cameraFollow;
  int money=0,bank=0,xp,level=1,wanted;float hunger=100,thirst=100;
  float health=100;
  readonly string[] missions={"إكمال تسجيل المواطن","فتح حساب بنكي","استخراج رخصة القيادة","شراء أول مركبة","اختيار وظيفة","زيارة مركز الشرطة","زيارة المستشفى","زيارة المحكمة","التعرف على منطقة العصابات","إكمال أول مهمة عمل"};
  void Awake(){Application.targetFrameRate=60;Screen.sleepTimeout=SleepTimeout.NeverSleep;Screen.orientation=ScreenOrientation.LandscapeLeft;EnsureCamera();}
- void Start(){try{GameDataCatalog.LoadAll();}catch(System.Exception e){Debug.LogError("Game data load failed: "+e.Message);}BuildPlayer();BuildVehicle();jobSystem=new GameObject("JobAndFactionSystem").AddComponent<JobAndFactionSystem>();inputRouter=new GameObject("InputRouter").AddComponent<InputRouter>();inputRouter.Bind(player);BuildHUD();BuildWorldSafe();BuildTrafficSafe();HUD();}
+ void Start(){try{GameDataCatalog.LoadAll();}catch(System.Exception e){Debug.LogError("Game data load failed: "+e.Message);}BuildPlayer();BuildVehicle();jobSystem=new GameObject("JobAndFactionSystem").AddComponent<JobAndFactionSystem>();careerDashboard=new GameObject("CareerDashboard").AddComponent<CareerDashboard>();careerDashboard.Bind(jobSystem);inputRouter=new GameObject("InputRouter").AddComponent<InputRouter>();inputRouter.Bind(player);BuildHUD();BuildWorldSafe();BuildTrafficSafe();HUD();}
  void BuildWorldSafe(){if(worldStatus!=null)worldStatus.text="جاري تجهيز المدينة ثلاثية الأبعاد...";try{new GameObject("World").AddComponent<WorldBuilder>().Build();if(worldStatus!=null)worldStatus.text="المدينة جاهزة";Debug.Log("World build completed.");}catch(System.Exception e){Debug.LogError("WORLD BUILD FAILED - fallback cube city is disabled: "+e);if(worldStatus!=null)worldStatus.text="تعذر تجهيز المدينة: "+e.GetType().Name+" — راجع سجل البناء";}}
  void BuildTrafficSafe(){try{new GameObject("Traffic").AddComponent<TrafficManager>();}catch(System.Exception e){Debug.LogError("Traffic build failed: "+e);}}
 
