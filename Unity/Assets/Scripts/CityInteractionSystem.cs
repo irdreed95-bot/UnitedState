@@ -21,7 +21,7 @@ public sealed class CityInteractionSystem : MonoBehaviour {
         foreach(var n in places){var go=GameObject.Find(n);if(go!=null){var i=go.GetComponent<Interactable>()??go.AddComponent<Interactable>();}}
     }
     public void InteractNearest(){if(player==null)player=FindFirstObjectByType<PlayerController>();if(player==null)return;string nearest=null;float best=5f;foreach(var n in places){var go=GameObject.Find(n);if(!go)continue;float d=Vector3.Distance(player.transform.position,go.transform.position);if(d<best){best=d;nearest=n;}}if(nearest!=null)Interact(nearest);}
-    void Interact(string place){visited.Add(place); progress.text=$"المؤسسات: {visited.Count}/5\nآخر زيارة: {place}"; prompt.text=$"✓ تم تسجيل زيارتك: {place}"; }
+    void Interact(string place){visited.Add(place);FindFirstObjectByType<GameManager>()?.HandleInstitutionVisit(place); progress.text=$"المؤسسات: {visited.Count}/5\nآخر زيارة: {place}"; prompt.text=$"✓ تم تسجيل زيارتك: {place}"; }
     void BuildUI(){
         canvas=new GameObject("CityInteractionHUD").AddComponent<Canvas>();canvas.renderMode=RenderMode.ScreenSpaceOverlay;canvas.sortingOrder=120;
         var scaler=canvas.gameObject.AddComponent<CanvasScaler>();scaler.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;scaler.referenceResolution=new Vector2(1920,1080);
