@@ -6,7 +6,7 @@ public sealed class WorldBuilder : MonoBehaviour {
  public const float CitySize=680f;
  const float Cell=10f, RoadSpacing=40f;
  readonly System.Random rng=new System.Random(20261011);
- readonly string[] buildings={"Generated3D/commercial_a","Generated3D/commercial_b","Generated3D/skyscraper_a","Generated3D/skyscraper_b","Generated3D/skyscraper_c","Generated3D/suburban_a","Generated3D/suburban_b","Generated3D/suburban_c"};
+ readonly string[] buildings={"Generated3D/commercial_a","Generated3D/commercial_b","Generated3D/commercial_c","Generated3D/commercial_d","Generated3D/commercial_e","Generated3D/commercial_f","Generated3D/skyscraper_a","Generated3D/skyscraper_b","Generated3D/skyscraper_c","Generated3D/suburban_a","Generated3D/suburban_b","Generated3D/suburban_c","Generated3D/suburban_d","Generated3D/suburban_e","Generated3D/suburban_f"};
  readonly (string,Vector3,string)[] landmarks={
   ("مركز الشرطة",new Vector3(-65,0,-65),"Generated3D/commercial_a"),
   ("المستشفى",new Vector3(65,0,-65),"Generated3D/commercial_b"),
@@ -41,12 +41,12 @@ public sealed class WorldBuilder : MonoBehaviour {
    if(i%4==0||Mathf.Abs(i)<=1){
     Cube("Road_NS",new Vector3(p,-.05f,0),new Vector3(i%4==0?8f:10f,.16f,CitySize-50),asphalt);
     Cube("Road_EW",new Vector3(0,-.05f,p),new Vector3(CitySize-50,.16f,i%4==0?8f:10f),asphalt);
-    if(i%4==0){LaneMark(new Vector3(p,-.0f,0),true);LaneMark(new Vector3(0,-.0f,p),false);}
+    if(i%8==0){LaneMark(new Vector3(p,-.0f,0),true);LaneMark(new Vector3(0,-.0f,p),false);}
    }
   }
   Cube("CentralPlaza",new Vector3(0,.03f,0),new Vector3(28,.12f,28),concrete);
   Cube("PlazaReflectingPool",new Vector3(0,.12f,0),new Vector3(8,.08f,8),water);
-  for(int i=-13;i<=13;i++){
+  for(int i=-13;i<=13;i+=2){
    StreetLight(new Vector3(i*20,0,24),Quaternion.identity);
    StreetLight(new Vector3(i*20,0,-24),Quaternion.identity);
    StreetLight(new Vector3(24,0,i*20),Quaternion.Euler(0,90,0));
@@ -54,7 +54,7 @@ public sealed class WorldBuilder : MonoBehaviour {
   }
  }
  void LaneMark(Vector3 p,bool vertical){
-  for(int n=-14;n<=14;n+=2){Vector3 q=p+(vertical?new Vector3(0,.045f,n*20):new Vector3(n*20,.045f,0));Cube("LaneDash",q,vertical?new Vector3(.18f,.025f,4f):new Vector3(4f,.025f,.18f),yellow);}
+  for(int n=-8;n<=8;n+=4){Vector3 q=p+(vertical?new Vector3(0,.045f,n*32):new Vector3(n*32,.045f,0));Cube("LaneDash",q,vertical?new Vector3(.18f,.025f,4f):new Vector3(4f,.025f,.18f),yellow);}
  }
  void CoastAndHarbor(){
   Cube("Ocean",new Vector3(375,-.6f,0),new Vector3(110,.4f,740),water);
@@ -122,7 +122,7 @@ public sealed class WorldBuilder : MonoBehaviour {
    if(Mathf.Abs(x%RoadSpacing)<8||Mathf.Abs(z%RoadSpacing)<8||InPark(x,z))continue;
    Tree(new Vector3(x,0,z),.75f+(float)rng.NextDouble()*.55f);
   }
-  string[] cars={"Generated3D/sedan","Generated3D/suv","Generated3D/taxi","Generated3D/police"};
+  string[] cars={"Generated3D/sedan","Generated3D/suv","Generated3D/taxi","Generated3D/police","Generated3D/ambulance","Generated3D/firetruck","Generated3D/van"};
   for(int i=0;i<42;i++){
    float x=(float)rng.NextDouble()*510-255,z=(float)rng.NextDouble()*510-255;
    if(Mathf.Abs(x%RoadSpacing)>10&&Mathf.Abs(z%RoadSpacing)>10)continue;
@@ -137,7 +137,7 @@ public sealed class WorldBuilder : MonoBehaviour {
   var pole=GameObject.CreatePrimitive(PrimitiveType.Cylinder);pole.transform.SetParent(root.transform,false);pole.transform.localPosition=Vector3.up*3.1f;pole.transform.localScale=new Vector3(.09f,3.1f,.09f);pole.GetComponent<Renderer>().material=metal;
   var arm=CubeChild(root.transform,"LampArm",new Vector3(.5f,5.8f,0),new Vector3(1,.09f,.09f),metal);
   var lamp=GameObject.CreatePrimitive(PrimitiveType.Sphere);lamp.transform.SetParent(root.transform,false);lamp.transform.localPosition=new Vector3(1,5.7f,0);lamp.transform.localScale=Vector3.one*.3f;lamp.GetComponent<Renderer>().material=yellow;
-  var light=lamp.AddComponent<Light>();light.type=LightType.Point;light.range=7;light.intensity=.55f;
+  var lampMat=lamp.GetComponent<Renderer>().material;if(lampMat.HasProperty("_EmissionColor")){lampMat.EnableKeyword("_EMISSION");lampMat.SetColor("_EmissionColor",new Color(1f,.72f,.28f)*1.6f);}
  }
  void Crane(Vector3 p){
   var root=new GameObject("HarborCrane");root.transform.position=p;
