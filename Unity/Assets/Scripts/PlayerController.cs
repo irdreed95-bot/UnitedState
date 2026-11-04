@@ -29,7 +29,7 @@ public sealed class PlayerController:MonoBehaviour{
  static void Part(PrimitiveType type,Vector3 pos,Vector3 scale,Material mat,Transform parent){
   var go=GameObject.CreatePrimitive(type); go.name="CitizenPart"; go.transform.SetParent(parent,false); go.transform.localPosition=pos; go.transform.localScale=scale; go.GetComponent<Renderer>().material=mat;
  }
- static Material Mat(Color c){var sh=Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Standard");var m=new Material(sh);m.color=c;return m;}
+ static Material Mat(Color c){var sh=Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Universal Render Pipeline/Simple Lit");if(sh==null)throw new System.InvalidOperationException("URP Lit shader is unavailable for the player model.");var m=new Material(sh);m.color=c;return m;}
  public void SetMoveInput(Vector2 v,bool r){input=v;running=r&&!Sleeping;}
  public void Jump(){if(cc.isGrounded&&!Sleeping)verticalVelocity=jumpForce;}
  public void ToggleWeapon(){WeaponEquipped=!WeaponEquipped;if(!WeaponEquipped)Aiming=false;}
