@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 public sealed class ProjectPipelineTests {
  static readonly string[] RequiredPrefabs={
@@ -39,5 +40,17 @@ public sealed class ProjectPipelineTests {
   Assert.AreEqual(4,EditorBuildSettings.scenes.Length,"Expected Splash, Login, Lobby and Gameplay scenes.");
   string[] expectedScenes={"Assets/Scenes/SplashScene.unity","Assets/Scenes/LoginScene.unity","Assets/Scenes/LobbyScene.unity","Assets/Scenes/CityRPScene.unity"};
   for(int i=0;i<expectedScenes.Length;i++){Assert.IsTrue(EditorBuildSettings.scenes[i].enabled,"Scene is not enabled: "+expectedScenes[i]);Assert.AreEqual(expectedScenes[i],EditorBuildSettings.scenes[i].path,"Scene order mismatch at index "+i);Assert.IsTrue(AssetDatabase.LoadAssetAtPath<SceneAsset>(expectedScenes[i])!=null,"Scene asset is missing: "+expectedScenes[i]);}
+  var screenType=AppDomain.CurrentDomain.GetAssemblies().Select(a=>a.GetType("CorruptStateRP.Onboarding.OnboardingScreen",false)).FirstOrDefault(t=>t!=null);
+  Assert.NotNull(screenType,"OnboardingScreen did not compile.");
+  for(int i=0;i<3;i++){
+   var scene=EditorSceneManager.OpenScene(expectedScenes[i],OpenSceneMode.Single);
+   var screenObject=GameObject.Find("OnboardingScreen");Assert.NotNull(screenObject,"Missing onboarding root in "+expectedScenes[i]);
+   var screen=screenObject.GetComponent(screenType);Assert.NotNull(screen);
+   var serialized=new SerializedObject(screen);Assert.AreEqual(i,serialized.FindProperty("mode").enumValueIndex,"Incorrect onboarding mode in "+expectedScenes[i]);
+  }
+  EditorSceneManager.OpenScene(expectedScenes[3],OpenSceneMode.Single);
+  Assert.NotNull(GameObject.Find("GameManager"),"Gameplay scene has no GameManager.");
+  Assert.NotNull(GameObject.Find("MobileHUD"),"Gameplay scene has no mobile HUD.");
+
  }
 }
