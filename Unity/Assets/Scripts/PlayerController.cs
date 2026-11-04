@@ -9,27 +9,9 @@ public sealed class PlayerController:MonoBehaviour{
   cc=GetComponent<CharacterController>();
   cc.height=1.8f; cc.radius=.32f; cc.center=new Vector3(0,.9f,0);
   var v=Resources.Load<GameObject>("Generated3D/citizen");
-  if(v)Instantiate(v,transform);
-  else BuildFallbackCitizen();
+  if(v==null)throw new System.InvalidOperationException("Required citizen prefab is missing: Resources/Generated3D/citizen");
+  Instantiate(v,transform);
  }
- void BuildFallbackCitizen(){
-  var root=new GameObject("CitizenVisual");
-  root.transform.SetParent(transform,false);
-  var skin=Mat(new Color(.62f,.43f,.31f)); var shirt=Mat(new Color(.10f,.16f,.24f)); var pants=Mat(new Color(.055f,.06f,.075f));
-  Part(PrimitiveType.Capsule,new Vector3(0,1.02f,0),new Vector3(.62f,.82f,.62f),skin,root.transform);
-  Part(PrimitiveType.Capsule,new Vector3(0,1.95f,0),new Vector3(.72f,.72f,.72f),skin,root.transform);
-  Part(PrimitiveType.Cube,new Vector3(0,1.25f,0),new Vector3(.72f,.9f,.42f),shirt,root.transform);
-  Part(PrimitiveType.Cube,new Vector3(-.24f,.47f,0),new Vector3(.25f,.78f,.34f),pants,root.transform);
-  Part(PrimitiveType.Cube,new Vector3(.24f,.47f,0),new Vector3(.25f,.78f,.34f),pants,root.transform);
-  Part(PrimitiveType.Cube,new Vector3(-.24f,.05f,.06f),new Vector3(.30f,.18f,.55f),pants,root.transform);
-  Part(PrimitiveType.Cube,new Vector3(.24f,.05f,.06f),new Vector3(.30f,.18f,.55f),pants,root.transform);
-  Part(PrimitiveType.Capsule,new Vector3(-.52f,1.32f,0),new Vector3(.22f,.62f,.22f),shirt,root.transform);
-  Part(PrimitiveType.Capsule,new Vector3(.52f,1.32f,0),new Vector3(.22f,.62f,.22f),shirt,root.transform);
- }
- static void Part(PrimitiveType type,Vector3 pos,Vector3 scale,Material mat,Transform parent){
-  var go=GameObject.CreatePrimitive(type); go.name="CitizenPart"; go.transform.SetParent(parent,false); go.transform.localPosition=pos; go.transform.localScale=scale; go.GetComponent<Renderer>().material=mat;
- }
- static Material Mat(Color c){var sh=Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Universal Render Pipeline/Simple Lit");if(sh==null)throw new System.InvalidOperationException("URP Lit shader is unavailable for the player model.");var m=new Material(sh);m.color=c;return m;}
  public void SetMoveInput(Vector2 v,bool r){input=v;running=r&&!Sleeping;}
  public void Jump(){if(cc.isGrounded&&!Sleeping)verticalVelocity=jumpForce;}
  public void ToggleWeapon(){WeaponEquipped=!WeaponEquipped;if(!WeaponEquipped)Aiming=false;}
