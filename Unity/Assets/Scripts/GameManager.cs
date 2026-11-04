@@ -1,8 +1,8 @@
-using UnityEngine;using UnityEngine.UI;
+using System.Collections.Generic;using UnityEngine;using UnityEngine.UI;
 namespace CorruptStateRP {
 public sealed class GameManager:MonoBehaviour {
  PlayerController player;VehicleController vehicle;Camera mainCamera;JobAndFactionSystem jobSystem;InputRouter inputRouter;MobileActionHUD actionHud;CareerDashboard careerDashboard;Text stats,mission,worldStatus;ThirdPersonCameraFollow cameraFollow;
- int money=0,bank=0,xp,level=1,wanted;float hunger=100,thirst=100;
+ int money=0,bank=0,xp,level=1,wanted;float hunger=100,thirst=100;readonly HashSet<string> visitedInstitutions=new HashSet<string>();
  float health=100;
  readonly string[] missions={"إكمال تسجيل المواطن","فتح حساب بنكي","استخراج رخصة القيادة","شراء أول مركبة","اختيار وظيفة","زيارة مركز الشرطة","زيارة المستشفى","زيارة المحكمة","التعرف على منطقة العصابات","إكمال أول مهمة عمل"};
  void Awake(){Application.targetFrameRate=60;Screen.sleepTimeout=SleepTimeout.NeverSleep;Screen.orientation=ScreenOrientation.LandscapeLeft;EnsureCamera();}
@@ -16,9 +16,10 @@ public sealed class GameManager:MonoBehaviour {
  void Update(){hunger=Mathf.Max(0,hunger-Time.deltaTime*.01f);thirst=Mathf.Max(0,thirst-Time.deltaTime*.018f);if(Input.GetKeyDown(KeyCode.F))ToggleVehicle();if(Input.GetKeyDown(KeyCode.R)&&vehicle!=null)vehicle.ToggleEngine();HUD();}
  void FixedUpdate(){var keyboard=new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical"));var i=Vector2.ClampMagnitude(InputRouter.Move+keyboard,1);if(vehicle!=null&&vehicle.Controlled){if(player!=null)player.enabled=false;vehicle.Drive(i);}else if(player!=null){player.enabled=true;player.SetMoveInput(i,InputRouter.Sprint||Input.GetKey(KeyCode.LeftShift));}}
  public void ToggleVehicleFromHUD(){ToggleVehicle();}
+ public void HandleInstitutionVisit(string place){if(!visitedInstitutions.Add(place))return;xp+=100;level=Mathf.Max(1,1+xp/1000);switch(place){case "المستشفى":health=100;hunger=100;thirst=100;break;case "مركز الشرطة":case "المحكمة":wanted=0;break;}HUD();Debug.Log("Institution visit registered: "+place+"; XP="+xp);}
  void ToggleVehicle(){if(vehicle==null||player==null)return;if(!vehicle.Controlled&&Vector3.Distance(player.transform.position,vehicle.transform.position)>5.5f)return;bool entering=!vehicle.Controlled;vehicle.SetControlled(entering);player.enabled=!entering;if(entering){cameraFollow?.SetTarget(vehicle.transform);}else{player.transform.position=vehicle.transform.position+vehicle.transform.right*2.2f;cameraFollow?.SetTarget(player.transform);}}
  void BuildHUD(){var c=new GameObject("HUD").AddComponent<Canvas>();c.renderMode=RenderMode.ScreenSpaceOverlay;c.sortingOrder=100;var p=new GameObject("Stats").AddComponent<Image>();p.transform.SetParent(c.transform,false);var r=p.rectTransform;r.anchorMin=new Vector2(0,1);r.anchorMax=new Vector2(0,1);r.pivot=new Vector2(0,1);r.anchoredPosition=new Vector2(18,-18);r.sizeDelta=new Vector2(430,145);p.color=new Color(.05f,.07f,.09f,.88f);stats=Text(p.transform,new Vector2(16,-12),new Vector2(400,95),18);mission=Text(p.transform,new Vector2(16,-108),new Vector2(400,30),15);worldStatus=Text(p.transform,new Vector2(16,-140),new Vector2(400,34),13);worldStatus.text="تهيئة العالم...";}
  Text Text(Transform p,Vector2 pos,Vector2 size,int fs){var g=new GameObject("Text");g.transform.SetParent(p,false);var t=g.AddComponent<Text>();t.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");t.fontSize=fs;t.color=Color.white;t.alignment=TextAnchor.UpperLeft;t.rectTransform.anchoredPosition=pos;t.rectTransform.sizeDelta=size;return t;}
- void HUD(){if(stats==null||mission==null)return;stats.text=$"CORRUPT STATE RP\n$ {money} | بنك {bank} | LV {level} | XP {xp}\n❤️ {health:0}% 🍖 {hunger:0}% 💧 {thirst:0}% ⭐ {wanted}\nالوظيفة: {(jobSystem!=null?jobSystem.CurrentJob:"عاطل")} | الفصيل: {(jobSystem!=null?jobSystem.CurrentFaction:"مدني")}";mission.text=$"المهمة: {missions[Mathf.Abs(xp)%missions.Length]}";}
+ void HUD(){if(stats==null||mission==null)return;stats.text=$"CORRUPT STATE RP\n$ {money} | بنك {bank} | LV {level} | XP {xp}\n❤️ {health:0}% 🍖 {hunger:0}% 💧 {thirst:0}% ⭐ {wanted}\nالوظيفة: {(jobSystem!=null?jobSystem.CurrentJob:"عاطل")} | الفصيل: {(jobSystem!=null?jobSystem.CurrentFaction:"مدني")}";mission.text=visitedInstitutions.Count<5?$"المهمة: زيارة مؤسسات المدينة {visitedInstitutions.Count}/5":"اكتملت مهمة التعرف على المؤسسات • اختر وظيفة من زر مسار";}
 
 }}
