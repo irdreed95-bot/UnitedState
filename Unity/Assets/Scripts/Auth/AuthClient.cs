@@ -1,7 +1,7 @@
 using System;using System.Collections;using UnityEngine;using UnityEngine.Networking;
 namespace CorruptStateRP.Auth {
 public sealed class AuthClient:MonoBehaviour {
- static AuthClient instance;string baseUrl="";ISessionStore store;public SessionTokens Session{get;private set;}public bool HasSession=>Session!=null&&Session.IsUsable;public event Action<bool> SessionChanged;
+ static AuthClient instance;string baseUrl="";ISessionStore store;public string ApiBaseUrl=>baseUrl;public SessionTokens Session{get;private set;}public bool HasSession=>Session!=null&&Session.IsUsable;public event Action<bool> SessionChanged;
  void Awake(){if(instance!=null&&instance!=this){Destroy(gameObject);return;}instance=this;DontDestroyOnLoad(gameObject);store=new PlayerPrefsSessionStore();Session=store.Load();Configure(PlayerPrefs.GetString("CSRP_API_URL",""));}
  public void Configure(string url){baseUrl=(url??"").Trim().TrimEnd('/');PlayerPrefs.SetString("CSRP_API_URL",baseUrl);PlayerPrefs.Save();}
  bool Ready()=>!string.IsNullOrWhiteSpace(baseUrl);
