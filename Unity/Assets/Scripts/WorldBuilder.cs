@@ -86,7 +86,7 @@ public sealed class WorldBuilder : MonoBehaviour {
    if(InPark(wx,wz))continue;
    if(Mathf.Abs(wx)<25&&Mathf.Abs(wz)<25)continue;
    bool downtown=Mathf.Abs(wx)<125&&Mathf.Abs(wz)<125;
-   string path=downtown?buildings[rng.Next(0,5)]:buildings[rng.Next(5,8)];
+   string path=downtown?buildings[rng.Next(0,9)]:buildings[rng.Next(9,15)];
    var go=Spawn(path,new Vector3(wx,0,wz),downtown?1.2f:1.05f,"Building");
    if(go==null)BuildDetailedBuilding(new Vector3(wx,0,wz),downtown);
   }
@@ -170,7 +170,7 @@ public sealed class WorldBuilder : MonoBehaviour {
   var shader=Shader.Find("Universal Render Pipeline/Lit");
   if(shader==null)shader=Shader.Find("Universal Render Pipeline/Simple Lit");
   if(shader==null)shader=Shader.Find("Universal Render Pipeline/Unlit");
-  if(shader==null){Debug.LogError("No URP-compatible shader found; check URP package and pipeline asset.");shader=Shader.Find("Sprites/Default");}
+  if(shader==null)throw new InvalidOperationException("No URP-compatible 3D shader found. Refusing to create magenta or sprite-based city materials.");
   var m=new Material(shader);m.color=c;if(m.HasProperty("_Smoothness"))m.SetFloat("_Smoothness",.18f);return m;
  }
 }
