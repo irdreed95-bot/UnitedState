@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CorruptStateRP {
@@ -6,6 +7,9 @@ public sealed class WorldBuilder : MonoBehaviour {
  public const float CitySize=680f;
  const float Cell=10f, RoadSpacing=40f;
  readonly System.Random rng=new System.Random(20261011);
+ readonly List<Transform> pedestrians=new List<Transform>();
+ readonly List<Vector3> pedestrianDirections=new List<Vector3>();
+ readonly List<float> pedestrianLimits=new List<float>();
  readonly string[] buildings={"Generated3D/commercial_a","Generated3D/commercial_b","Generated3D/commercial_c","Generated3D/commercial_d","Generated3D/commercial_e","Generated3D/commercial_f","Generated3D/skyscraper_a","Generated3D/skyscraper_b","Generated3D/skyscraper_c","Generated3D/suburban_a","Generated3D/suburban_b","Generated3D/suburban_c","Generated3D/suburban_d","Generated3D/suburban_e","Generated3D/suburban_f"};
  readonly (string,Vector3,string)[] landmarks={
   ("مركز الشرطة",new Vector3(-65,0,-65),"Generated3D/commercial_a"),
@@ -20,7 +24,9 @@ public sealed class WorldBuilder : MonoBehaviour {
   ("الميناء",new Vector3(215,0,165),"Generated3D/commercial_a")
  };
  Material asphalt,concrete,grass,water,white,yellow,glass,metal;
- public void Build(){MakeMaterials();Environment();GroundAndRoads();CoastAndHarbor();Parks();Buildings();Landmarks();Life();}
+ public void Build(){MakeMaterials();Environment();GroundAndRoads();CoastAndHarbor();Parks();Buildings();Landmarks();Life();Pedestrians();}
+ void Update(){for(int i=0;i<pedestrians.Count;i++){var person=pedestrians[i];if(person==null)continue;var direction=pedestrianDirections[i];person.position+=direction*(1.15f*Time.deltaTime);if(Mathf.Abs(person.position.x)>pedestrianLimits[i]||Mathf.Abs(person.position.z)>pedestrianLimits[i]){direction=-direction;pedestrianDirections[i]=direction;person.rotation=Quaternion.LookRotation(direction);}}}
+ void Pedestrians(){var citizen=Resources.Load<GameObject>("Generated3D/citizen");if(citizen==null){Debug.LogWarning("Citizen GLB prefab is missing; pedestrian population was skipped instead of spawning placeholder people.");return;}for(int i=0;i<18;i++){bool alongX=i%2==0;float lane=(i%3-1)*2.2f;float offset=-105+(i/2)*24f;var position=alongX?new Vector3(offset,.02f, lane+40):new Vector3(lane+80,.02f,offset);var direction=alongX?Vector3.right:Vector3.forward;var person=Instantiate(citizen,position,Quaternion.LookRotation(direction));person.name="CityPedestrian_"+(i+1);person.transform.localScale*=.92f;pedestrians.Add(person.transform);pedestrianDirections.Add(direction);pedestrianLimits.Add(125f);}}
  void MakeMaterials(){
   asphalt=Mat(new Color(.075f,.085f,.095f));concrete=Mat(new Color(.42f,.43f,.42f));
   grass=Mat(new Color(.16f,.34f,.19f));water=Mat(new Color(.035f,.28f,.39f));
