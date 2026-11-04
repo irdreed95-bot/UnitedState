@@ -34,6 +34,6 @@ jobs:
         with:
           projectPath: Unity
           unityVersion: 6000.0.63f1
-          testMode: EditMode
+          testMode: editmode
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: Unity Editor Validation
