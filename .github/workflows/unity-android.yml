@@ -1,6 +1,9 @@
 name: Build Unity Android APK
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - build/android-apk-2026-11-17
 permissions:
   contents: read
 concurrency:
