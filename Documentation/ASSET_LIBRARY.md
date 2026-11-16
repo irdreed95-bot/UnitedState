@@ -124,3 +124,30 @@ Quality target: realistic / PBR. Low-poly packs are excluded from final producti
 - [ ] Acquire realistic drivable civilian and emergency vehicles with rigged moving parts.
 - [ ] Acquire complete realistic institution interiors.
 - [ ] Import, optimize and validate in the actual Unity project and Android build.
+
+
+## Existing Unity repository audit (main branch)
+
+The current project already has an asset download/import pipeline. It was inspected before proposing any new import:
+
+- `ASSET_POLICY.md` names Kenney City Kit Commercial/Suburban/Car Kit and Quaternius Universal Base Characters as CC0.
+- `Unity/scripts/download_assets.sh` downloads 15 commercial/suburban building GLBs, seven vehicle GLBs (sedan, SUV, taxi, police, ambulance, fire truck, van) and one citizen GLB from public GitHub mirrors.
+- The building and car packs are Kenney's modular stylized / low-poly game-art kits, not photorealistic assets. The official Kenney City Kit Commercial page confirms CC0, and OpenGameArt describes the pack as optimized low-poly models. Therefore their license is acceptable, but their visual quality does not meet the user's final realism target.
+- The character mirror identifies its source as Quaternius Universal Base Characters (CC0). The specific bundled Superhero Male base is a stylized base character, not a realistic civilian NPC roster, and the mirror's asset notes say it contains no external animation clip.
+- `Unity/Assets/Scripts/Editor/BuildProject.cs` requires the above 23 GLB files and generates prefabs in `Assets/Resources/Generated3D/`. Do not remove or rename these expected paths as part of the asset upgrade without updating and testing the importer/build pipeline.
+- `docs/UNITY_SOURCE_ONLY_IMPORT_RULE.md` explicitly prohibits committing large binary asset packs and requires missing asset binaries to be reported separately. Keep that rule intact.
+
+### Repository audit decision
+1. Preserve the current pipeline as a temporary build dependency; do not describe its Kenney/Quaternius models as photorealistic final assets.
+2. Do not replace the current GLB files with Grab3D Cozy models: those are also stylized.
+3. Build a separate realistic-asset manifest with exact model pages, original licenses, hashes, and target import paths before changing the downloader.
+4. Keep a visual fallback for CI only if necessary, but label it as temporary. The final quality gate remains realistic PBR assets, not low-poly.
+5. The current build script's `NormalizeMaterials` path must be reviewed for texture retention and correct glTF PBR conversion before accepting scanned/PBR models; a successful import alone is insufficient.
+
+## Verified original-source references for the current temporary pipeline
+- Kenney City Kit Commercial (official CC0 page): https://kenney.nl/assets/city-kit-commercial
+- Kenney City Kit Commercial (OpenGameArt description confirms optimized low-poly): https://opengameart.org/content/city-kit-commercial
+- Kenney's mirror catalog identifies 1,883 Kenney models across 19 packs, all CC0: https://github.com/Hidencod/tge-assets
+- Quaternius character mirror's ASSETS.md records the exact Universal Base Characters source and CC0 license: https://github.com/programasweights/avatar/blob/main/ASSETS.md
+
+These references confirm licensing/provenance, not suitability as realistic final art.
