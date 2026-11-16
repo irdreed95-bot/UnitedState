@@ -79,3 +79,19 @@ Quality target: realistic / PBR. Low-poly packs are excluded from final producti
 - [ ] Select and record institution interiors and specialized props.
 - [ ] Import and validate accepted assets in Unity 6 URP.
 - [ ] Run Android performance and visual checks.
+
+
+## Additional asset leads (screened, not yet approved for final use)
+
+| Lead | What it offers | License / caveat | Decision |
+|---|---|---|---|
+| Ara 3D Gen — https://github.com/olatunde85/3d-gen | Open-source workflow for generating rigged, animated human characters and exporting GLB/FBX/OBJ; project describes CC0 base assets and commercial exports. | Review the current repository license, generated-content terms, clothing/texture provenance, and actual character quality before adopting. | Candidate NPC pipeline; not yet validated in Unity or on Android. |
+| ModKit — https://github.com/JaronKBragg7337/asset-pack-ue-threejs-blender-unity | 38 modular building and prop pieces in FBX/GLB/Blend. | Source states CC0 and commercial use; modular kit geometry is a construction base, not a finished photorealistic city. | Optional architectural blockout / kitbash only; not approved as final city art. |
+| Grab3D Police Station — https://grab3d.com/models/buildings/police-station/ | Single police-station exterior in GLB/FBX/BLEND/OBJ; page lists 17,736 triangles and 2K textures. | Page states CC0 commercial use. Visual style and completeness (especially interior) still require inspection. | Candidate for visual review; do not assume it fulfills the detailed two-floor police facility in the PDF. |
+
+## Explicit gaps after this pass
+- No verified free photorealistic full-city kit has been identified.
+- No verified complete set of realistic civilian/emergency vehicles has been identified.
+- No complete realistic interior packs have yet been verified for the hospital, court, bank, university, prison and military base.
+- The character leads found so far are either a generator workflow or individual characters; neither is a validated crowd/NPC library for this project.
+- The low-poly city packs and hand-painted low/mid-poly characters remain excluded from the final realism target.
