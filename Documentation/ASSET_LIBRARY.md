@@ -95,3 +95,32 @@ Quality target: realistic / PBR. Low-poly packs are excluded from final producti
 - No complete realistic interior packs have yet been verified for the hospital, court, bank, university, prison and military base.
 - The character leads found so far are either a generator workflow or individual characters; neither is a validated crowd/NPC library for this project.
 - The low-poly city packs and hand-painted low/mid-poly characters remain excluded from the final realism target.
+
+
+## Second research pass — catalogued leads and quality decisions
+
+| Asset / catalog | License evidence | Quality / mobile notes | Decision |
+|---|---|---|---|
+| Poly Haven models — https://polyhaven.com/models | Poly Haven states its library is CC0; commercial use is allowed without attribution. | Models are generally realistic / scanned / PBR, but many are high-poly and some are props rather than complete buildings. Select suitable texture sizes and inspect geometry for Android. | Primary realistic source. Select individual models only after triangle/material/texture inspection. |
+| 3D Valley buildings catalog — https://3dvalley.com/3d-models/buildings | Catalog describes listed models as CC0 and links to source libraries. | Mixed styles and geometry budgets; some assets have tens of thousands of triangles or more. Confirm original creator/source license on every model page. | Discovery index only; not blanket approval. |
+| 3DAssets.dev realistic buildings — https://3dassets.dev/assets?category=buildings&style=realistic | Site states listed GLB assets are free for commercial use; verify individual asset/source terms before use. | Search catalog reports self-contained GLB files under 25 MB. File size alone does not establish acceptable draw calls, textures or geometry for Android. | Candidate discovery index; individual asset review required. |
+| Grab3D Police Station — https://grab3d.com/models/buildings/police-station/ | Page states CC0 1.0, commercial use allowed. | Listed as part of a “Lightweight Cozy Buildings Kit”; despite being a two-storey police station and 17,736 triangles, the style is stylized, not photorealistic. | Excluded from final realistic-art set. Temporary layout reference only if separately approved. |
+| Grab3D Compact Car — https://grab3d.com/models/vehicles/compact-car/ | Page states CC0 1.0, commercial use allowed. | Part of a lightweight cozy cars kit; stylized, 17,338 triangles and 2K textures. | Excluded from final realistic vehicle set. |
+| Grab3D 1990s Compact Car — https://grab3d.com/models/vehicles/1990s-compact-car/ | Page states CC0 1.0, commercial use allowed. | Explicitly part of a lightweight retro/cozy kit; stylized appearance. | Excluded from final realistic vehicle set. |
+| FPS Buildings Environment Kit — https://github.com/petroulacl/fps-buildings-env-kit | Repository claims CC0 / public-domain sources. | Listed Kenney city/building pieces and Quaternius vegetation are stylized/low-poly; it also contains HDRIs and PBR ground materials. Audit original pack licenses and provenance before copying. | Not a final realistic city solution; possible temporary blockout/material reference only. |
+
+### Second-pass selection rules
+- A license pass never overrides the visual-quality pass. CC0 stylized models remain excluded from the final realistic art target.
+- Aggregators are discovery tools, not license authorities. Store the original creator's license URL and asset page for every accepted download.
+- For Android, prefer modular architecture with shared atlases/materials, LODs, occlusion/visibility management and compressed textures; high-poly scanned hero assets must be simplified or baked before broad use.
+- No vehicle is accepted as drivable until wheels, pivots, steering, suspension, collision, interior visibility and controller integration are checked.
+- No institution is accepted from an exterior-only model when the PDF requires detailed accessible interiors and multi-floor gameplay.
+
+## Second-pass status
+- [x] Record realistic-source catalogues for building discovery.
+- [x] Classify Grab3D police station and cars as stylized and exclude them from final realism.
+- [x] Record a CC0 environment-kit repository but exclude its low-poly building/vegetation packs from final art.
+- [ ] Acquire exact photorealistic building assets with original license pages.
+- [ ] Acquire realistic drivable civilian and emergency vehicles with rigged moving parts.
+- [ ] Acquire complete realistic institution interiors.
+- [ ] Import, optimize and validate in the actual Unity project and Android build.
