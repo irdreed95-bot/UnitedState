@@ -151,3 +151,43 @@ The current project already has an asset download/import pipeline. It was inspec
 - Quaternius character mirror's ASSETS.md records the exact Universal Base Characters source and CC0 license: https://github.com/programasweights/avatar/blob/main/ASSETS.md
 
 These references confirm licensing/provenance, not suitability as realistic final art.
+
+
+## Third research pass — source capacity and realistic-asset acquisition
+
+### Poly Haven catalogue inspection
+- Models catalogue: https://polyhaven.com/models
+- Official model API index: https://api.polyhaven.com/assets?type=models
+- The catalogue currently reports 522 models total, including 14 in Architecture and 11 in Vehicles & Transport. Poly Haven's official home page describes its models as hyperreal 3D assets; the library is CC0 and commercial use is permitted.
+- This makes Poly Haven a strong source for realistic environmental props, scanned nature, selected architecture details and PBR materials, but its current architecture/vehicle counts are not enough to assume it can supply the complete city or full fleet required by the PDF.
+- API index is a discovery/index endpoint, not an asset approval. For each candidate, fetch its individual model page and record actual geometry, texture resolution, formats, and source license before import.
+- Source evidence: https://polyhaven.com/models ; https://api.polyhaven.com/assets?type=models ; https://polyhaven.com/license
+
+### Additional catalogues screened
+| Source | Current evidence | Decision |
+|---|---|---|
+| Grab3D catalogue — https://grab3d.com/ | States its library is CC0 1.0 and supports GLB/FBX/BLEND/USDZ/OBJ; individual model entries show quality tier, triangles, texture resolution and formats. | Useful for finding detailed props/characters, but review each model's visual style. Cozy/stylized entries remain excluded from final realism. |
+| 3DAssets.dev — https://3dassets.dev/ | States all indexed GLB assets are CC0 and commercially usable; offers category filtering and asset-level pages. | Candidate source only. Verify original source/provenance and inspect the actual model; the catalogue's CC0 claim alone is not enough to accept a model. |
+| Renderlyst — https://renderlyst.site/models | Curated 52-model Objaverse subset; entries identify CC0 or CC BY 4.0. Several building/vehicle examples are explicitly low-poly or stylized. | Not a primary city/vehicle source; use only individually reviewed realistic models and preserve CC BY attribution where applicable. |
+
+### Concrete rejection examples (to prevent quality regression)
+- Kenney/Car Kit “Delivery” model: CC0, GLB, 2,476 triangles, but belongs to a deliberately lightweight stylized kit. Not a realistic production vehicle.
+- Grab3D “Compact Car”: CC0, 17,338 triangles, 2K textures, but explicitly labeled “Lightweight Stylized”. Not accepted as a realistic production vehicle.
+- Renderlyst “Japanese House” and “Cyberpunk Car” are catalogue examples with CC BY 4.0; visual style and original-source details still need inspection. No blanket acceptance.
+
+### Acquisition decision
+1. Do not replace any of the current 23 build-required GLBs yet.
+2. Build a candidate shortlist from individual Poly Haven / 3DAssets.dev / Grab3D model pages, prioritizing road/sidewalk props, street furniture, vegetation, rocks, realistic interior props and modular architectural components.
+3. Keep vehicles and rigged human characters as separate high-risk workstreams: no candidate is accepted until its realistic appearance, moving parts/rig, mobile LOD strategy and license are verified.
+4. For every accepted candidate, record: stable source page, creator, license text/URL, file format, file size, triangles, materials, texture dimensions, hash, intended Unity path and import test result.
+5. Import only after the candidate manifest is complete enough to preserve the current CI build contract. Large binaries remain outside Git unless the repository's source-only rule is deliberately revised.
+
+### Third-pass status
+- [x] Confirm Poly Haven's current catalogue size and category counts from its model catalogue.
+- [x] Confirm official CC0/commercial license statement.
+- [x] Screen additional CC0 catalogues and reject stylized vehicle examples.
+- [ ] Record exact individually approved photorealistic building models.
+- [ ] Record exact individually approved realistic vehicle models.
+- [ ] Record exact realistic rigged character models.
+- [ ] Acquire binaries and verify hashes/licenses.
+- [ ] Import into Unity 6 URP and test on Android.
