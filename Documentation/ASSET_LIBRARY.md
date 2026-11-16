@@ -191,3 +191,29 @@ These references confirm licensing/provenance, not suitability as realistic fina
 - [ ] Record exact realistic rigged character models.
 - [ ] Acquire binaries and verify hashes/licenses.
 - [ ] Import into Unity 6 URP and test on Android.
+
+
+## Fourth research pass — individually inspected Poly Haven assets
+
+The following exact asset pages were inspected. These are real, traceable candidates, not blanket approval to import.
+
+| Asset | Source / creator | License | Published technical facts | Production decision |
+|---|---|---|---|---|
+| Modular Urban Apartments Facade | https://polyhaven.com/a/modular_urban_apartments_facade — James Ray Cock | CC0 | 118K triangles; 51.5 m wide; download package 663.38 MB; extensive texture maps | Realistic architectural source candidate, but **not mobile-ready as downloaded**. Requires modular extraction, retopology/LOD, texture resizing/atlasing and draw-call review before use. Do not ship the 663 MB source package directly. |
+| Covered Car | https://polyhaven.com/a/covered_car — MP | CC0 | 13K triangles; 4.4 m wide; 8K textures; 50.41 MB download; GLB/FBX/Blend formats | Realistic static prop only (car under a fabric cover); not a drivable vehicle. Use only for garage/junkyard decoration after texture reduction and Android test. |
+| Namaqualand rocks / dry vegetation collection | https://polyhaven.com/ — Poly Haven collection | CC0 | Photoscanned nature assets; each model requires individual geometry/texture inspection | Suitable source direction for desert/mountain scenery, but do not import a whole collection blindly. |
+| Modern Buildings HDRI | https://polyhaven.com/a/modern_buildings — Greg Zaal | CC0 | 16K HDRI environment; 20.68 MB download; city/riverfront lighting panorama | Lighting/reference asset only; it is not a building mesh or explorable city. Use a reduced-resolution/mobile cubemap bake if adopted. |
+
+### Exact technical risk decisions
+- The Apartments Facade is the first realistic architecture lead with enough detail to justify further evaluation, but its 118K triangles and 663.38 MB package make direct mobile import unacceptable. It needs a derivative mobile asset (simplified geometry, LODs, baked/shared materials) and a recorded derivative hash.
+- Covered Car must never be counted as one of the required drivable fleet vehicles; it is a covered static vehicle prop.
+- Modern Buildings is an HDRI panorama, not geometry. It can improve lighting/reference but cannot fill the city-building backlog.
+- Poly Haven confirms CC0 for its assets and permits commercial use without attribution; retain source links anyway for provenance.
+
+### Fourth-pass status
+- [x] Inspect exact architecture asset page and record geometry/package size.
+- [x] Inspect exact vehicle-category asset page and classify its gameplay role correctly.
+- [x] Identify an urban HDRI and explicitly distinguish lighting from world geometry.
+- [ ] Produce optimized mobile derivatives and verify them in Unity.
+- [ ] Find actual drivable civilian/police/ambulance/firetruck models with wheels, pivots and interior.
+- [ ] Find realistic building modules with practical source package sizes and mobile-ready LODs.
