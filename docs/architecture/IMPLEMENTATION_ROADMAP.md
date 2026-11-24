@@ -37,5 +37,8 @@
 - Migration `Server/sql/002_account_admin_foundation.sql` was applied successfully to the existing `unitedstate` PostgreSQL database on 2026-11-25. The transaction completed with `COMMIT`.
 - Post-migration verification reported 13 public tables, 1 player, 0 `admin_accounts`, and 0 `admin_roles`. The existing guest player remains present; its UUID should be rechecked as a separate verification step.
 - The existing game server was not started or stopped during the migration work.
-- Admin API/bootstrap, Cloudflare admin UI, OAuth adapters, Unity sign-in UI, and player-management actions are NOT implemented or deployed yet.
+- Initial Fastify admin-auth routes are implemented in `Server/src/admin-auth.ts` and registered by `Server/src/server.ts`: one-time owner bootstrap, email/password login, cookie-backed session lookup, and logout. They are committed but have NOT yet been built or runtime-tested on the user's environment.
+- Admin auth requires `ADMIN_APP_ORIGIN` and a high-entropy `ADMIN_BOOTSTRAP_SECRET` (32+ printable ASCII characters). The browser should access these routes through a same-origin Cloudflare Worker/BFF; the bootstrap secret must never be committed or placed in frontend source.
+- The current login rate limiter is process-local and is only a baseline; production deployment must add Cloudflare edge rate limiting or a shared limiter before public exposure.
+- Cloudflare admin UI, OAuth adapters, Unity sign-in UI, and player-management actions are NOT implemented or deployed yet.
 - External OAuth credentials, Cloudflare account binding/domain, and a persistent game-server host must be configured before production activation.
