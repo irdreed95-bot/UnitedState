@@ -5,10 +5,11 @@ import websocket from "@fastify/websocket";
 import jsonwebtoken from "jsonwebtoken";
 import {Pool,PoolClient} from "pg";
 import crypto from "node:crypto";
+import {registerAdminAuth} from "./admin-auth.js";
 const app=Fastify({logger:true}),pool=new Pool({connectionString:process.env.DATABASE_URL});
 const accessSecret=process.env.JWT_ACCESS_SECRET||process.env.JWT_SECRET||"",refreshSecret=process.env.JWT_REFRESH_SECRET||"";
 if(accessSecret.length<32||refreshSecret.length<32||accessSecret===refreshSecret)throw new Error("Configure distinct JWT_ACCESS_SECRET and JWT_REFRESH_SECRET values (32+ chars).");
-await app.register(cors,{origin:process.env.CORS_ORIGIN||false});await app.register(fastifyJwt,{secret:accessSecret});await app.register(websocket);
+await app.register(cors,{origin:process.env.CORS_ORIGIN||false});await app.register(fastifyJwt,{secret:accessSecret});await app.register(websocket);await registerAdminAuth(app,pool);
 type Claims={id:string;type?:string};const sha=(s:string)=>crypto.createHash("sha256").update(s).digest("hex"),scrypt=(p:string,s:string)=>crypto.scryptSync(p,s,64).toString("hex"),access=(id:string)=>app.jwt.sign({id,type:"access"},{expiresIn:"15m"}),refresh=(id:string)=>jsonwebtoken.sign({id,type:"refresh"},refreshSecret,{expiresIn:"30d"}),expiresAt=()=>Math.floor(Date.now()/1000)+900;
 async function session(id:string){const accessToken=access(id),refreshToken=refresh(id);await pool.query("INSERT INTO refresh_sessions(token_hash,player_id,expires_at) VALUES($1,$2,now()+interval '30 days')",[sha(refreshToken),id]);return{accessToken,refreshToken,expiresAtUnix:expiresAt(),playerId:id};}
 async function auth(req:any,reply:any){try{await req.jwtVerify();const c=req.user as Claims;if(!c.id||c.type!=="access")throw new Error("invalid token");}catch{return reply.code(401).send({error:"unauthorized"});}}
