@@ -19,3 +19,10 @@ UnityLicense*.ulf
 .idea/
 .DS_Store
 Thumbs.db
+
+# UnitedState server private/runtime files
+Server/.env
+Server/.env.*
+!Server/.env.example
+Server/node_modules/
+Server/dist/
