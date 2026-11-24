@@ -81,9 +81,13 @@ CREATE TABLE IF NOT EXISTS promo_redemptions (
   promo_code_id uuid NOT NULL REFERENCES promo_codes(id) ON DELETE RESTRICT,
   player_id uuid NOT NULL REFERENCES players(id) ON DELETE RESTRICT,
   reward_snapshot jsonb NOT NULL,
-  redeemed_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (promo_code_id, player_id)
+  redeemed_at timestamptz NOT NULL DEFAULT now()
 );
+-- Multiple redemptions per player are supported up to promo_codes.per_player_limit.
+-- The redemption API MUST lock the promo_codes row (SELECT ... FOR UPDATE),
+-- count existing redemptions for this player, enforce both limits, and insert
+-- the redemption + reward grant in the same transaction.
+CREATE INDEX IF NOT EXISTS promo_redemptions_code_player_idx ON promo_redemptions(promo_code_id, player_id, redeemed_at DESC);
 CREATE INDEX IF NOT EXISTS promo_redemptions_player_idx ON promo_redemptions(player_id, redeemed_at DESC);
 
 COMMIT;
