@@ -19,3 +19,16 @@ UnityLicense*.ulf
 .idea/
 .DS_Store
 Thumbs.db
+
+# UnitedState server private files
+Server/.env
+Server/.env.*
+!Server/.env.example
+Server/node_modules/
+Server/dist/
+
+# Cloudflare local secrets and generated artifacts
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
