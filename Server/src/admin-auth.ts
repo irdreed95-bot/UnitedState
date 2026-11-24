@@ -125,15 +125,16 @@ export async function registerAdminAuth(app: FastifyInstance, pool: Pool) {
       bootstrapSecret?: unknown;
     };
     const configuredSecret = process.env.ADMIN_BOOTSTRAP_SECRET || "";
-    if (configuredSecret.length < 32) {
+    if (configuredSecret.length < 32 || !/^[\x20-\x7E]+$/.test(configuredSecret)) {
       return reply.code(503).send({ error: "admin_bootstrap_not_configured" });
     }
     if (
       typeof body?.bootstrapSecret !== "string" ||
-      body.bootstrapSecret.length !== configuredSecret.length ||
+      !/^[\x20-\x7E]+$/.test(body.bootstrapSecret) ||
+      Buffer.byteLength(body.bootstrapSecret) !== Buffer.byteLength(configuredSecret) ||
       !crypto.timingSafeEqual(
-        Buffer.from(body.bootstrapSecret),
-        Buffer.from(configuredSecret)
+        Buffer.from(body.bootstrapSecret, "utf8"),
+        Buffer.from(configuredSecret, "utf8")
       )
     ) {
       return reply.code(401).send({ error: "invalid_bootstrap_credentials" });
@@ -144,12 +145,13 @@ export async function registerAdminAuth(app: FastifyInstance, pool: Pool) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
       return reply.code(400).send({ error: "valid_email_required" });
     }
-    if (!passwordInput(body.password)) {
+    const ownerPassword = body?.password;
+    if (!passwordInput(ownerPassword)) {
       return reply.code(400).send({ error: "password_min_12_chars_required" });
     }
 
     const salt = crypto.randomBytes(16).toString("hex");
-    const passwordHash = await hashPassword(body.password, salt);
+    const passwordHash = await hashPassword(ownerPassword, salt);
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -163,8 +165,8 @@ export async function registerAdminAuth(app: FastifyInstance, pool: Pool) {
       }
       const inserted = await client.query(
         `INSERT INTO admin_accounts
-           (email, password_hash, password_salt, password_algorithm, role, email_verified_at)
-         VALUES ($1, $2, $3, 'scrypt', 'owner', now())
+           (email, password_hash, password_salt, password_algorithm, role)
+         VALUES ($1, $2, $3, 'scrypt', 'owner')
          RETURNING id, email, role`,
         [email, passwordHash, salt]
       );
