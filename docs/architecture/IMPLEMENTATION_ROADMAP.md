@@ -32,8 +32,10 @@
 - Promo redemption and reward grants are atomic, idempotent, and server-authoritative.
 - No production deployment or database migration is considered complete until tested against a backup and verified on the target environment.
 
-## Current implementation status
-- Approved branch created for this work.
-- Additive schema and design documentation are being prepared for review.
-- No database migration has been applied. No server process has been started or stopped by this change.
-- External OAuth credentials, Cloudflare account binding/domain, and a persistent game-server host are not available in the repository and must be configured before production activation.
+## Current implementation status (updated 2026-11-25)
+- Approved branch: `feat/corruptstate-admin-auth-platform`.
+- Migration `Server/sql/002_account_admin_foundation.sql` was applied successfully to the existing `unitedstate` PostgreSQL database on 2026-11-25. The transaction completed with `COMMIT`.
+- Post-migration verification reported 13 public tables, 1 player, 0 `admin_accounts`, and 0 `admin_roles`. The existing guest player remains present; its UUID should be rechecked as a separate verification step.
+- The existing game server was not started or stopped during the migration work.
+- Admin API/bootstrap, Cloudflare admin UI, OAuth adapters, Unity sign-in UI, and player-management actions are NOT implemented or deployed yet.
+- External OAuth credentials, Cloudflare account binding/domain, and a persistent game-server host must be configured before production activation.
