@@ -102,7 +102,8 @@ namespace CorruptStateRP.Onboarding {
             submitButton = MakeButton(card.transform, "تسجيل الدخول", new Vector2(.07f, .105f), new Vector2(.93f, .215f), 27, new Color(.79f, .52f, .08f, 1f), new Color(.045f, .035f, .02f), Submit);
             submitText = submitButton.GetComponentInChildren<Text>();
             MakeButton(card.transform, "الدخول كضيف", new Vector2(.07f, .035f), new Vector2(.48f, .095f), 19, new Color(.09f, .105f, .13f, .98f), Color.white, Guest);
-            var toggleButton = MakeButton(card.transform, "إنشاء حساب جديد", new Vector2(.52f, .035f), new Vector2(.93f, .095f), 19, new Color(.09f, .105f, .13f, .98f), new Color(1f, .78f, .28f), ToggleRegister);\n            toggleText = toggleButton.GetComponentInChildren<Text>();
+            var toggleButton = MakeButton(card.transform, "إنشاء حساب جديد", new Vector2(.52f, .035f), new Vector2(.93f, .095f), 19, new Color(.09f, .105f, .13f, .98f), new Color(1f, .78f, .28f), ToggleRegister);
+            toggleText = toggleButton.GetComponentInChildren<Text>();
             statusText = MakeText(parent, "جاهز. أدخل بياناتك للمتابعة.", new Vector2(.55f, .045f), new Vector2(.95f, .095f), 18, Color.white, TextAnchor.MiddleCenter, false);
         }
 
