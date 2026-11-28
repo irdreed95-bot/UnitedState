@@ -179,7 +179,8 @@ namespace CorruptStateRP.Onboarding {
             registering = !registering;
             confirmFieldObject.SetActive(registering);
             loginHintObject.SetActive(!registering);
-            submitText.text = ArabicFixer.Fix(registering ? "إنشاء الحساب" : "تسجيل الدخول");\n            toggleText.text = ArabicFixer.Fix(registering ? "لديك حساب؟ تسجيل الدخول" : "إنشاء حساب جديد");
+            submitText.text = ArabicFixer.Fix(registering ? "إنشاء الحساب" : "تسجيل الدخول");
+            toggleText.text = ArabicFixer.Fix(registering ? "لديك حساب؟ تسجيل الدخول" : "إنشاء حساب جديد");
             SetStatus(registering ? "أنشئ حسابك باستخدام البريد أو رقم الهاتف." : "أدخل بيانات حسابك للمتابعة.");
         }
 
