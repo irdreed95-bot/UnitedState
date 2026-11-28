@@ -131,7 +131,7 @@ namespace CorruptStateRP.Editor {
             int r2 = radius * radius;
             for (int y = -radius; y <= radius; y++)
                 for (int x = -radius; x <= radius; x++)
-                    if (x * x + y * y <= r2) t.SetPixel(cx + x, cy + y, c);
+                    if (x * x + y * y <= r2) {\n                        int px = cx + x, py = cy + y;\n                        if (px >= 0 && px < t.width && py >= 0 && py < t.height) t.SetPixel(px, py, c);\n                    }
         }
 
         static void Line(Texture2D t, int x0, int y0, int x1, int y1, int thickness, Color c) {
