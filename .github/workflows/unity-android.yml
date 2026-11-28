@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - main
+      - feat/corruptstate-admin-auth-platform
       - feat/premium-player-auth-apk
 permissions:
   contents: read
