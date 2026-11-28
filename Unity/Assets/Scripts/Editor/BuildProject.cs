@@ -4,7 +4,7 @@ namespace CorruptStateRP.Editor {
 public static class BuildProject {
  [MenuItem("Corrupt State RP/Generate Onboarding Scenes")]
  public static void GenerateOnboardingScenes(){
-  ConfigureProjectSettings();EnsureURP();SyncDataResources();Generate3DPrefabs();
+  ConfigureProjectSettings();EnsureURP();SyncDataResources();Generate3DPrefabs();LoginArtworkGenerator.Generate();
   Make("SplashScene",CorruptStateRP.Onboarding.OnboardingScreen.Mode.Splash);
   Make("LoginScene",CorruptStateRP.Onboarding.OnboardingScreen.Mode.Login);
   Make("LobbyScene",CorruptStateRP.Onboarding.OnboardingScreen.Mode.Lobby);
