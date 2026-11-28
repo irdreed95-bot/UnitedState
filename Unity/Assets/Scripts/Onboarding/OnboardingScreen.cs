@@ -10,6 +10,7 @@ namespace CorruptStateRP.Onboarding {
     public sealed class OnboardingScreen : MonoBehaviour {
         public enum Mode { Splash, Login, Lobby }
         [SerializeField] Mode mode;
+        const string DefaultApiUrl = "http://127.0.0.1:8081";
         Font font;
         InputField identifierField, passwordField, confirmField, endpointField;
         Text statusText, submitText, endpointHint, toggleText;
@@ -67,13 +68,14 @@ namespace CorruptStateRP.Onboarding {
             MakeText(parent, "عالم مفتوح • حياة واقعية • قصتك تبدأ هنا", new Vector2(.06f, .53f), new Vector2(.48f, .63f), 30, Color.white, TextAnchor.MiddleLeft, true);
             MakeText(parent, "ادخل المدينة، اصنع هويتك، وابنِ مستقبلك بين الناس", new Vector2(.06f, .43f), new Vector2(.47f, .52f), 23, new Color(.83f, .86f, .91f), TextAnchor.MiddleLeft, false);
 
-            bool configured = !string.IsNullOrWhiteSpace(PlayerPrefs.GetString("CSRP_API_URL", ""));
+            string savedEndpoint = PlayerPrefs.GetString("CSRP_API_URL", "");
+            bool configured = !string.IsNullOrWhiteSpace(savedEndpoint);
             MakeImage(parent, "ConnectionBadge", new Vector2(.065f, .29f), new Vector2(.42f, .37f), new Color(.015f, .025f, .035f, .82f));
-            MakeText(parent, configured ? "●  رابط الخادم محفوظ" : "●  يلزم ضبط رابط الخادم", new Vector2(.08f, .29f), new Vector2(.41f, .37f), 22, configured ? new Color(.35f, 1f, .58f) : new Color(1f, .76f, .28f), TextAnchor.MiddleLeft, true);
+            MakeText(parent, configured ? "●  رابط الخادم محفوظ" : "●  العنوان المحلي الافتراضي 8081", new Vector2(.08f, .29f), new Vector2(.41f, .37f), 22, configured ? new Color(.35f, 1f, .58f) : new Color(1f, .76f, .28f), TextAnchor.MiddleLeft, true);
 
             settingsButton = MakeButton(parent, "إعدادات الاتصال", new Vector2(.065f, .16f), new Vector2(.31f, .25f), 21, new Color(.07f, .085f, .11f, .9f), new Color(1f, .78f, .28f), ToggleEndpointSettings);
             endpointFieldObject = MakeInput(parent, "رابط API للخادم (https://...)", false, new Vector2(.065f, .16f), new Vector2(.42f, .25f), out endpointField);
-            endpointField.text = PlayerPrefs.GetString("CSRP_API_URL", "");
+            endpointField.text = string.IsNullOrWhiteSpace(savedEndpoint) ? DefaultApiUrl : savedEndpoint;
             endpointFieldObject.SetActive(false);
             saveEndpointObject = MakeButton(parent, "حفظ", new Vector2(.065f, .08f), new Vector2(.22f, .15f), 20, new Color(.68f, .43f, .08f, 1f), Color.black, SaveEndpoint).gameObject;
             saveEndpointObject.SetActive(false);
@@ -232,7 +234,7 @@ namespace CorruptStateRP.Onboarding {
         AuthClient GetAuth() {
             var auth = FindFirstObjectByType<AuthClient>();
             if (auth == null) auth = new GameObject("AuthClient").AddComponent<AuthClient>();
-            string url = endpointField != null ? endpointField.text : PlayerPrefs.GetString("CSRP_API_URL", "");
+            string url = endpointField != null ? endpointField.text : PlayerPrefs.GetString("CSRP_API_URL", DefaultApiUrl);
             if (!string.IsNullOrWhiteSpace(url)) auth.Configure(url);
             return auth;
         }
